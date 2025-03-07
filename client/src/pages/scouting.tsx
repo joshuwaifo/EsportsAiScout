@@ -4,9 +4,20 @@ import PageHeader from "@/components/layout/PageHeader";
 import PlayerCard from "@/components/scouting/PlayerCard";
 import { playerProspects } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
-import { FilterIcon, RefreshCwIcon } from "lucide-react";
+import { 
+  FilterIcon, 
+  RefreshCwIcon, 
+  UploadIcon, 
+  SearchIcon, 
+  BrainIcon,
+  AlertTriangleIcon,
+  Loader2Icon,
+  InfoIcon
+} from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { 
   Select,
   SelectContent,
@@ -14,17 +25,77 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Scouting() {
   const [searchQuery, setSearchQuery] = useState("");
   const [role, setRole] = useState("all");
+  const [game, setGame] = useState("all");
+  const [playerName, setPlayerName] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [hasUploadedFile, setHasUploadedFile] = useState(false);
+  const [fileUploaded, setFileUploaded] = useState("");
   
   const filteredPlayers = playerProspects.filter(player => {
     const matchesSearch = player.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = role === "all" || player.role.toLowerCase().includes(role.toLowerCase());
     return matchesSearch && matchesRole;
   });
+
+  // Mock analysis data - in a real app, this would come from API
+  const mockAnalysisResult = {
+    playerName: "ZeroCool",
+    strengths: [
+      "Exceptional map awareness and vision control",
+      "High KDA ratio of 4.2 in tournament play", 
+      "Excellent team fight positioning",
+      "Flexible champion pool, mastering 12+ champions"
+    ],
+    weaknesses: [
+      "Occasionally overaggressive in early game", 
+      "Communication gaps during high-pressure scenarios",
+      "Limited experience in offline tournaments"
+    ],
+    recommendations: [
+      "Would pair well with a defensive-minded support",
+      "Team should leverage their early-game prowess",
+      "Consider for carry positions requiring mechanical expertise"
+    ],
+    compatibilityScore: 87,
+    recruitmentPriority: "High"
+  };
+
+  const handlePlayerAnalyze = async (e) => {
+    e.preventDefault();
+    
+    if (!playerName) {
+      return; // Prevent empty submission
+    }
+    
+    setIsAnalyzing(true);
+    
+    // Simulate API call with a delay
+    setTimeout(() => {
+      // In a real app, this would be:
+      // const result = await apiRequest('/api/strategy', { 
+      //   method: 'POST', 
+      //   body: JSON.stringify({ playerName, role: game }) 
+      // });
+      
+      setAnalysisResult(mockAnalysisResult);
+      setIsAnalyzing(false);
+    }, 2000);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setHasUploadedFile(true);
+      setFileUploaded(file.name);
+    }
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-darkBg text-white">
@@ -97,6 +168,201 @@ export default function Scouting() {
             />
 
             <div className="px-4 mx-auto mt-8 max-w-7xl sm:px-6 md:px-8">
+              
+              {/* AI Analysis Form */}
+              <Card className="bg-surface border-none mb-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <BrainIcon className="w-5 h-5 mr-2 text-primary" />
+                    AI Player Analysis
+                  </CardTitle>
+                  <CardDescription>
+                    Get detailed performance insights using our advanced AI scouting system
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handlePlayerAnalyze} className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <Label htmlFor="playerName">Player Name/ID</Label>
+                        <Input 
+                          id="playerName"
+                          value={playerName}
+                          onChange={(e) => setPlayerName(e.target.value)}
+                          placeholder="Enter player name or ID" 
+                          className="mt-1 bg-darkBg border-surface"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="gameType">Game Type</Label>
+                        <Select value={game} onValueChange={setGame}>
+                          <SelectTrigger id="gameType" className="mt-1 bg-darkBg border-surface">
+                            <SelectValue placeholder="Select game" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Games</SelectItem>
+                            <SelectItem value="league">League of Legends</SelectItem>
+                            <SelectItem value="dota">DOTA 2</SelectItem>
+                            <SelectItem value="csgo">CS:GO</SelectItem>
+                            <SelectItem value="valorant">Valorant</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="fileUpload" className="block mb-1">
+                        Upload Gameplay Stats (Optional)
+                      </Label>
+                      <div className="flex items-center">
+                        <label
+                          htmlFor="fileUpload"
+                          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-darkBg border border-surface rounded-md cursor-pointer hover:bg-gray-800"
+                        >
+                          <UploadIcon className="w-4 h-4 mr-2" />
+                          {hasUploadedFile ? "Change File" : "Choose File"}
+                          <input
+                            id="fileUpload"
+                            type="file"
+                            className="hidden"
+                            onChange={handleFileChange}
+                            accept=".csv,.json,.xlsx"
+                          />
+                        </label>
+                        {hasUploadedFile && (
+                          <span className="ml-2 text-sm text-gray-400">
+                            {fileUploaded}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-gray-400">
+                        Supported formats: CSV, JSON, Excel
+                      </p>
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full md:w-auto" 
+                      disabled={isAnalyzing || !playerName}
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing Player...
+                        </>
+                      ) : (
+                        <>
+                          <SearchIcon className="w-4 h-4 mr-2" />
+                          Analyze Player
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+              
+              {/* Analysis Results */}
+              {analysisResult && (
+                <Card className="mb-8 bg-surface border-none">
+                  <CardHeader className="pb-0">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg">
+                        AI Scouting Report: {analysisResult.playerName}
+                      </CardTitle>
+                      <Badge className="bg-primary text-white">
+                        {analysisResult.compatibilityScore}% Match
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      <span className="flex items-center text-xs">
+                        <InfoIcon className="w-3 h-3 mr-1" />
+                        Analysis generated by AI League's neural network
+                      </span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-6">
+                      {/* Strengths */}
+                      <div>
+                        <h4 className="text-md font-medium text-primary mb-2">Player Strengths</h4>
+                        <ul className="space-y-1 pl-5 list-disc text-sm">
+                          {analysisResult.strengths.map((strength, i) => (
+                            <li key={i}>{strength}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      {/* Weaknesses */}
+                      <div>
+                        <h4 className="text-md font-medium text-orange-500 mb-2">Areas for Development</h4>
+                        <ul className="space-y-1 pl-5 list-disc text-sm">
+                          {analysisResult.weaknesses.map((weakness, i) => (
+                            <li key={i}>{weakness}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      {/* Recommendations */}
+                      <div>
+                        <h4 className="text-md font-medium text-blue-400 mb-2">Team Fit Recommendations</h4>
+                        <ul className="space-y-1 pl-5 list-disc text-sm">
+                          {analysisResult.recommendations.map((rec, i) => (
+                            <li key={i}>{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      {/* File Analysis Note */}
+                      {hasUploadedFile && (
+                        <div className="p-3 bg-darkBg rounded-md">
+                          <p className="text-sm flex items-center">
+                            <InfoIcon className="w-4 h-4 mr-2 text-blue-400" />
+                            <span><strong>Note:</strong> Image analysis coming soon with multimodal AI.</span>
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Recruitment Priority */}
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-sm font-medium">Recruitment Priority:</span>
+                        <Badge 
+                          className={`${
+                            analysisResult.recruitmentPriority === "High" 
+                              ? "bg-green-600" 
+                              : analysisResult.recruitmentPriority === "Medium"
+                              ? "bg-yellow-600"
+                              : "bg-gray-600"
+                          }`}
+                        >
+                          {analysisResult.recruitmentPriority}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-darkBg mt-4 flex justify-between items-center text-xs text-gray-400 px-6 py-3">
+                    <div className="flex items-center">
+                      <AlertTriangleIcon className="w-3 h-3 mr-1" />
+                      <span>AI-generated insights are suggestions and may not be 100% accurate. Use along with human scouting.</span>
+                    </div>
+                    <a href="/about" className="text-primary hover:underline">Ethics Policy</a>
+                  </CardFooter>
+                </Card>
+              )}
+              
+              {/* Divider with text */}
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-700"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="px-2 text-sm text-gray-400 bg-darkBg">
+                    Browse Available Players
+                  </span>
+                </div>
+              </div>
+              
               {/* Scouting Filters */}
               <Card className="bg-surface border-none mb-6">
                 <CardHeader>
