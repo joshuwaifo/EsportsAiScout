@@ -24,14 +24,12 @@ export default function MobileNav() {
           (item.href !== '/' && location.startsWith(item.href));
         
         return (
-          <Link key={item.name} href={item.href}>
-            <a className={cn(
-              "flex flex-col items-center justify-center flex-1 h-full",
-              isActive ? "text-primary" : "text-gray-400"
-            )}>
-              <item.icon className="text-lg h-5 w-5" />
-              <span className="mt-1 text-xs">{item.name}</span>
-            </a>
+          <Link key={item.name} href={item.href} className={cn(
+            "flex flex-col items-center justify-center flex-1 h-full",
+            isActive ? "text-primary" : "text-gray-400"
+          )}>
+            <item.icon className="text-lg h-5 w-5" />
+            <span className="mt-1 text-xs">{item.name}</span>
           </Link>
         );
       })}
