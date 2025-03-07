@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import Scouting from "@/pages/scouting";
 import Strategy from "@/pages/strategy";
 import Team from "@/pages/team";
+import About from "@/pages/about";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/scouting" component={Scouting} />
       <Route path="/strategy" component={Strategy} />
       <Route path="/team" component={Team} />
+      <Route path="/about" component={About} />
       <Route component={NotFound} />
     </Switch>
   );
