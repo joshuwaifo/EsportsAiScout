@@ -4,7 +4,8 @@ import {
   SearchIcon, 
   BrainIcon, 
   UsersIcon, 
-  SettingsIcon 
+  SettingsIcon,
+  InfoIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export default function Sidebar() {
     { name: 'Scouting', href: '/scouting', icon: SearchIcon },
     { name: 'Strategy', href: '/strategy', icon: BrainIcon },
     { name: 'My Team', href: '/team', icon: UsersIcon },
+    { name: 'About', href: '/about', icon: InfoIcon },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
 
