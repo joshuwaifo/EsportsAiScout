@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TeamRadarChart from "@/components/dashboard/TeamRadarChart";
 import StrategyRecommendation from "@/components/strategy/StrategyRecommendation";
+import OneKeyStrategy from "@/components/strategy/OneKeyStrategy";
 import { teamAttributes, draftRecommendations } from "@/data/mockData";
 import { Progress } from "@/components/ui/progress";
 
@@ -89,6 +90,9 @@ export default function Strategy() {
             />
 
             <div className="px-4 mx-auto mt-8 max-w-7xl sm:px-6 md:px-8">
+              {/* One Key Strategy */}
+              <OneKeyStrategy teamAttributes={teamAttributes} />
+              
               {/* Strategy Tabs */}
               <Tabs defaultValue="upcoming">
                 <TabsList className="mb-6 bg-surface">
