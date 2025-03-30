@@ -16,9 +16,11 @@ import TeamRadarChart from "@/components/dashboard/TeamRadarChart";
 import StrategyRecommendation from "@/components/strategy/StrategyRecommendation";
 import OneKeyStrategy from "@/components/strategy/OneKeyStrategy";
 import { 
-  StrategyGenerationDialog, 
+  StrategyGenerationDialog,
+  FullReportGenerationDialog,
   exportStrategyPlan, 
-  exportTeamData
+  exportTeamData,
+  StrategyFunctions
 } from "@/components/strategy/StrategyUtils";
 import { teamAttributes, draftRecommendations } from "@/data/mockData";
 import { Progress } from "@/components/ui/progress";
@@ -27,8 +29,10 @@ export default function Strategy() {
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [isGeneratingTeamStrategy, setIsGeneratingTeamStrategy] = useState(false);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+  const [isGeneratingFullReport, setIsGeneratingFullReport] = useState(false);
   const [currentTeam, setCurrentTeam] = useState("Team Zenith");
   const [strategyData, setStrategyData] = useState<any>(null);
+  const [fullReportData, setFullReportData] = useState<any>(null);
   
   // Opponent stats for comparison
   const opponentTeams = [
@@ -52,6 +56,16 @@ export default function Strategy() {
   // Handle generate insights/analysis
   const handleGenerateAnalysis = () => {
     setIsGeneratingInsights(true);
+  };
+  
+  // Handle generate full report
+  const handleGenerateFullReport = () => {
+    setIsGeneratingFullReport(true);
+  };
+  
+  // Handle full report completion
+  const handleFullReportComplete = (data: any) => {
+    setFullReportData(data);
   };
 
   // Handle export data
@@ -232,12 +246,21 @@ export default function Strategy() {
                     <p className="text-gray-400 max-w-md mx-auto">
                       Detailed analysis of your team's performance, strengths, and areas for improvement.
                     </p>
-                    <Button 
-                      className="mt-4"
-                      onClick={handleGenerateAnalysis}
-                    >
-                      Generate Analysis
-                    </Button>
+                    <div className="flex space-x-4 justify-center mt-4">
+                      <Button 
+                        onClick={handleGenerateAnalysis}
+                      >
+                        <ZapIcon className="mr-2 h-4 w-4" />
+                        Generate Analysis
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleGenerateFullReport}
+                      >
+                        <FileIcon className="mr-2 h-4 w-4" />
+                        Full Report
+                      </Button>
+                    </div>
                   </div>
                 </TabsContent>
                 
@@ -267,6 +290,14 @@ export default function Strategy() {
         }}
         teamName={currentTeam}
         onComplete={handleStrategyComplete}
+      />
+      
+      {/* Full Report Generation Dialog */}
+      <FullReportGenerationDialog 
+        isOpen={isGeneratingFullReport}
+        onClose={() => setIsGeneratingFullReport(false)}
+        teamAttributes={teamAttributes}
+        onComplete={handleFullReportComplete}
       />
 
       <MobileNav />
