@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Loader2Icon, BrainIcon, CheckIcon, DownloadIcon, FileTextIcon } from 'lucide-react';
 import { TeamAttribute } from '@/types';
+import jsPDF from 'jspdf';
 
 // Function to generate a report name with date
 export const generateReportName = () => {
@@ -304,13 +305,14 @@ export function FullReportGenerationDialog({
               <Button onClick={onClose} variant="outline" className="flex-1">
                 Close
               </Button>
-              <Button onClick={() => {
-                onClose();
-                // Simulate download click
-                setTimeout(() => {
-                  alert("Report downloaded successfully!");
-                }, 500);
-              }} className="flex-1">
+              <Button 
+                onClick={() => {
+                  // Generate and download PDF report
+                  generatePdfReport(teamAttributes);
+                  onClose();
+                }} 
+                className="flex-1"
+              >
                 <DownloadIcon className="mr-2 h-4 w-4" />
                 Download
               </Button>
@@ -369,6 +371,130 @@ export const exportTeamData = (teamAttributes: TeamAttribute[]) => {
   // Clean up
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+// PDF Generation Function
+export const generatePdfReport = (teamAttributes: TeamAttribute[]) => {
+  try {
+    // Create new PDF document
+    const doc = new jsPDF();
+    const reportName = generateReportName();
+    const date = new Date().toLocaleString();
+    
+    // Add header
+    doc.setFontSize(22);
+    doc.setTextColor(0, 71, 187);  // Blue color
+    doc.text("AI League Strategy Report", 105, 20, { align: 'center' });
+    
+    // Add report info
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);  // Gray color
+    doc.text(`Generated: ${date}`, 105, 30, { align: 'center' });
+    doc.text("Team Alpha Profile", 105, 38, { align: 'center' });
+    
+    // Add separator line
+    doc.setDrawColor(0, 71, 187);  // Blue color
+    doc.setLineWidth(0.5);
+    doc.line(20, 45, 190, 45);
+    
+    // Executive Summary
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);  // Black color
+    doc.text("Executive Summary", 20, 55);
+    
+    doc.setFontSize(11);
+    doc.text("This comprehensive report provides a detailed analysis of Team Alpha's performance,", 20, 65);
+    doc.text("strengths, weaknesses, and strategic recommendations for upcoming matches.", 20, 72);
+    
+    // Team Attributes Section
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Team Attributes", 20, 90);
+    
+    // Set up attributes table
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    
+    teamAttributes.forEach((attr, index) => {
+      const yPos = 100 + (index * 7);
+      
+      // Draw progress bar background
+      doc.setDrawColor(220, 220, 220);
+      doc.setFillColor(220, 220, 220);
+      doc.roundedRect(90, yPos - 1, 80, 5, 1, 1, 'F');
+      
+      // Draw progress bar filled portion
+      doc.setDrawColor(0, 71, 187);
+      doc.setFillColor(0, 71, 187);
+      const width = Math.min(attr.value * 0.8, 80); // Scale to max width of 80
+      doc.roundedRect(90, yPos - 1, width, 5, 1, 1, 'F');
+      
+      // Add attribute name and value
+      doc.setTextColor(0, 0, 0);
+      doc.text(attr.name, 20, yPos + 2);
+      doc.text(`${attr.value}%`, 180, yPos + 2, { align: 'right' });
+    });
+    
+    // Team Performance Section
+    const perfY = 150;
+    doc.setFontSize(16);
+    doc.text("Current Performance", 20, perfY);
+    
+    doc.setFontSize(10);
+    doc.text("Win Rate: 68%", 20, perfY + 10);
+    doc.text("Tournament Standing: 3rd Place", 20, perfY + 20);
+    doc.text("Average Match Duration: 32:17", 20, perfY + 30);
+    doc.text("Total Matches: 143", 20, perfY + 40);
+    
+    // Strategic Recommendations
+    const stratY = 200;
+    doc.setFontSize(16);
+    doc.text("Strategic Recommendations", 20, stratY);
+    
+    doc.setFontSize(10);
+    const recommendations = [
+      "Focus training on improving objective control",
+      "Develop more flexible drafting strategies",
+      "Enhance early game coordination",
+      "Practice split-push decision making"
+    ];
+    
+    recommendations.forEach((rec, index) => {
+      const yPos = stratY + 10 + (index * 7);
+      doc.text(`${index + 1}. ${rec}`, 20, yPos);
+    });
+    
+    // Upcoming Matches
+    const matchY = 240;
+    doc.setFontSize(16);
+    doc.text("Upcoming Matches", 20, matchY);
+    
+    doc.setFontSize(10);
+    const matches = [
+      { opponent: "Team Zenith", winProbability: 76 },
+      { opponent: "Team Omega", winProbability: 68 },
+      { opponent: "Team Nexus", winProbability: 62 }
+    ];
+    
+    matches.forEach((match, index) => {
+      const yPos = matchY + 10 + (index * 7);
+      doc.text(match.opponent, 20, yPos);
+      doc.text(`Win Probability: ${match.winProbability}%`, 120, yPos);
+    });
+    
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Generated by AI League Analytics Engine. Confidential.", 105, 285, { align: 'center' });
+    
+    // Save the PDF
+    doc.save(`${reportName}.pdf`);
+    return true;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    alert("Failed to generate PDF. Please try again.");
+    return false;
+  }
 };
 
 // React component wrapper for strategy functions
