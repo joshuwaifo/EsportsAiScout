@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { teamMembers } from "@/data/mockData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TeamMemberProfile from "@/components/team/TeamMemberProfile";
 
 export default function Team() {
   return (
@@ -176,9 +177,7 @@ export default function Team() {
                             </div>
                           </div>
                           
-                          <Button variant="default" size="sm" className="w-full">
-                            View Profile
-                          </Button>
+                          <TeamMemberProfile member={member} />
                         </CardContent>
                       </Card>
                     ))}
