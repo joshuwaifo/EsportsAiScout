@@ -1,23 +1,74 @@
+import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { BrainIcon, ZapIcon, DownloadIcon } from "lucide-react";
+import { 
+  BrainIcon, 
+  ZapIcon, 
+  DownloadIcon, 
+  FileIcon, 
+  DatabaseIcon
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TeamRadarChart from "@/components/dashboard/TeamRadarChart";
 import StrategyRecommendation from "@/components/strategy/StrategyRecommendation";
 import OneKeyStrategy from "@/components/strategy/OneKeyStrategy";
+import { 
+  StrategyGenerationDialog, 
+  exportStrategyPlan, 
+  exportTeamData
+} from "@/components/strategy/StrategyUtils";
 import { teamAttributes, draftRecommendations } from "@/data/mockData";
 import { Progress } from "@/components/ui/progress";
 
 export default function Strategy() {
+  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
+  const [isGeneratingTeamStrategy, setIsGeneratingTeamStrategy] = useState(false);
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+  const [currentTeam, setCurrentTeam] = useState("Team Zenith");
+  const [strategyData, setStrategyData] = useState<any>(null);
+  
   // Opponent stats for comparison
   const opponentTeams = [
     { name: "Team Zenith", matchDate: "Today", similarity: 96 },
     { name: "Team Omega", matchDate: "Next Week", similarity: 81 },
     { name: "Team Nexus", matchDate: "In 2 Weeks", similarity: 64 },
   ];
+
+  // Handle generate main strategy
+  const handleGenerateStrategy = () => {
+    setIsGeneratingStrategy(true);
+    setCurrentTeam("Team Zenith"); // Default to first team
+  };
+
+  // Handle generate team-specific strategy
+  const handleGenerateTeamStrategy = (teamName: string) => {
+    setIsGeneratingTeamStrategy(true);
+    setCurrentTeam(teamName);
+  };
+
+  // Handle generate insights/analysis
+  const handleGenerateAnalysis = () => {
+    setIsGeneratingInsights(true);
+  };
+
+  // Handle export data
+  const handleExportData = () => {
+    exportTeamData(teamAttributes);
+  };
+
+  // Handle export plan
+  const handleExportPlan = () => {
+    exportStrategyPlan();
+  };
+
+  // Handle strategy completion
+  const handleStrategyComplete = (data: any) => {
+    setStrategyData(data);
+    // Could update UI based on strategy data
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-darkBg text-white">
@@ -77,11 +128,19 @@ export default function Strategy() {
               subtitle="AI-powered game planning and opponent analysis"
               actions={
                 <>
-                  <Button variant="secondary" size="sm" className="mr-2">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="mr-2"
+                    onClick={handleGenerateStrategy}
+                  >
                     <ZapIcon className="mr-2 h-4 w-4" />
                     Generate Strategy
                   </Button>
-                  <Button size="sm">
+                  <Button 
+                    size="sm"
+                    onClick={handleExportPlan}
+                  >
                     <DownloadIcon className="mr-2 h-4 w-4" />
                     Export Plan
                   </Button>
@@ -122,7 +181,12 @@ export default function Strategy() {
                             </div>
                             <Progress value={team.similarity} className="h-2" />
                           </div>
-                          <Button variant="default" size="sm" className="w-full">
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => handleGenerateTeamStrategy(team.name)}
+                          >
                             <BrainIcon className="mr-2 h-4 w-4" />
                             Generate Strategy
                           </Button>
@@ -134,8 +198,16 @@ export default function Strategy() {
                   {/* Current Strategy */}
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <Card className="bg-surface border-none">
-                      <CardHeader>
+                      <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Team Zenith Analysis</CardTitle>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleExportData}
+                        >
+                          <DatabaseIcon className="mr-2 h-4 w-4" />
+                          Export Data
+                        </Button>
                       </CardHeader>
                       <CardContent>
                         <TeamRadarChart attributes={teamAttributes} />
@@ -160,7 +232,12 @@ export default function Strategy() {
                     <p className="text-gray-400 max-w-md mx-auto">
                       Detailed analysis of your team's performance, strengths, and areas for improvement.
                     </p>
-                    <Button className="mt-4">Generate Analysis</Button>
+                    <Button 
+                      className="mt-4"
+                      onClick={handleGenerateAnalysis}
+                    >
+                      Generate Analysis
+                    </Button>
                   </div>
                 </TabsContent>
                 
@@ -179,6 +256,18 @@ export default function Strategy() {
           </div>
         </main>
       </div>
+
+      {/* Strategy Generation Dialog */}
+      <StrategyGenerationDialog 
+        isOpen={isGeneratingStrategy || isGeneratingTeamStrategy || isGeneratingInsights}
+        onClose={() => {
+          setIsGeneratingStrategy(false);
+          setIsGeneratingTeamStrategy(false);
+          setIsGeneratingInsights(false);
+        }}
+        teamName={currentTeam}
+        onComplete={handleStrategyComplete}
+      />
 
       <MobileNav />
     </div>
