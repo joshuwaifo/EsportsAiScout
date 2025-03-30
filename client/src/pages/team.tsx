@@ -37,7 +37,7 @@ export default function Team() {
                   <input 
                     id="search" 
                     name="search" 
-                    className="block w-full py-2 pl-10 pr-3 text-sm placeholder-gray-400 bg-darkBg border border-surface rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" 
+                    className="block w-full py-2 pl-10 pr-3 text-sm placeholder-gray-400 bg-darkBg border border-surface rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white" 
                     placeholder="Search..." 
                     type="search" 
                   />

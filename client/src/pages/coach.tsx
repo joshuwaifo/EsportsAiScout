@@ -185,7 +185,7 @@ export default function CoachQA() {
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Ask a question about your team or strategy..."
-                      className="flex-1 bg-darkBg border-gray-700 focus:border-primary"
+                      className="flex-1 bg-darkBg border-gray-700 focus:border-primary text-white"
                     />
                     <Button type="submit" disabled={!inputValue.trim() || isTyping}>
                       <SendIcon className="h-4 w-4" />
