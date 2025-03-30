@@ -27,12 +27,10 @@ export const generateAnalysisPercentage = () => {
 
 // Strategy generation dialog component
 export function StrategyGenerationDialog({ 
-  isOpen, 
   onClose,
   teamName = "Team Zenith",
   onComplete
 }: { 
-  isOpen: boolean;
   onClose: () => void;
   teamName?: string;
   onComplete: (result: any) => void;
@@ -54,7 +52,7 @@ export function StrategyGenerationDialog({
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
-    if (isOpen && !isComplete) {
+    if (!isComplete) {
       timer = setInterval(() => {
         setProgress((prevProgress) => {
           const increment = Math.floor(Math.random() * 10) + 5;
@@ -75,7 +73,7 @@ export function StrategyGenerationDialog({
                 earlyGame: "Focus on aggressive top lane rotations. High priority on first herald.",
                 midGame: "Contest second and third Dragon spawns. Control river vision.",
                 lateGame: "Split push strategy recommended. Force objective trades.",
-                winPercentage: generateAnalysisPercentage(),
+                winRate: generateAnalysisPercentage(),
                 timestamp: new Date().toISOString(),
                 draftSuggestions: [
                   "Prioritize early game champions",
@@ -97,10 +95,10 @@ export function StrategyGenerationDialog({
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isOpen, isComplete, analysisSteps.length, onComplete, teamName]);
+  }, [isComplete, analysisSteps.length, onComplete, teamName]);
   
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="bg-surface border-none text-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center">

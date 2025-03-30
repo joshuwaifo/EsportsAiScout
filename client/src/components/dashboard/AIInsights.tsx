@@ -10,9 +10,10 @@ interface Insight {
 
 interface AIInsightsProps {
   insights: Insight[];
+  onGenerateMore?: () => void;
 }
 
-export default function AIInsights({ insights }: AIInsightsProps) {
+export default function AIInsights({ insights, onGenerateMore }: AIInsightsProps) {
   // Function to get icon based on insight type
   const getIcon = (type: string) => {
     switch(type) {
@@ -73,7 +74,11 @@ export default function AIInsights({ insights }: AIInsightsProps) {
             </div>
           ))}
 
-          <Button className="w-full mt-2" size="sm">
+          <Button 
+            className="w-full mt-2" 
+            size="sm"
+            onClick={onGenerateMore}
+          >
             <PlusIcon className="mr-2 h-4 w-4" />
             Generate More Insights
           </Button>

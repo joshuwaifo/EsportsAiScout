@@ -9,8 +9,12 @@ import TeamRadarChart from "@/components/dashboard/TeamRadarChart";
 import PlayerCard from "@/components/scouting/PlayerCard";
 import StrategyRecommendation from "@/components/strategy/StrategyRecommendation";
 import { 
+  StrategyGenerationDialog, 
+  exportTeamData 
+} from "@/components/strategy/StrategyUtils";
+import { 
   statCards, 
-  aiInsights, 
+  aiInsights as initialAiInsights, 
   playerProspects, 
   teamAttributes, 
   draftRecommendations 
@@ -19,11 +23,59 @@ import { Button } from "@/components/ui/button";
 import { 
   DownloadIcon, 
   PlusIcon, 
-  BoltIcon 
+  BoltIcon,
+  BrainIcon
 } from "lucide-react";
 
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
+  const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
+  const [aiInsights, setAiInsights] = useState(initialAiInsights);
+  
+  // Function to generate more insights
+  const generateMoreInsights = () => {
+    // New insights to add
+    const newInsights = [
+      {
+        type: 'tip' as const,
+        title: 'Mid Game Strategy',
+        description: 'Consider prioritizing objective control over aggressive ganking based on recent match data.'
+      },
+      {
+        type: 'stat' as const,
+        title: 'Team Fight Win Rate',
+        description: 'Your team fight win rate has increased by 12% in the last 5 matches.'
+      }
+    ];
+    
+    // Add new insights to the existing ones
+    setAiInsights(prevInsights => [...prevInsights, ...newInsights]);
+  };
+  
+  // Handler for "New Analysis" button
+  const handleNewAnalysis = () => {
+    setIsGeneratingAnalysis(true);
+  };
+
+  // Handler for analysis completion
+  const handleAnalysisComplete = (data: any) => {
+    // We would normally update state with the new analysis data here
+    console.log("Analysis complete:", data);
+    
+    // For demonstration, let's add a new insight based on the "analysis"
+    const analysisInsight = {
+      type: 'stat' as const,
+      title: 'New Team Analysis',
+      description: `Team synergy score: ${data.winPercentage}%. Focus on improving team communication.`
+    };
+    
+    setAiInsights(prevInsights => [analysisInsight, ...prevInsights]);
+  };
+
+  // Handler for exporting data
+  const handleExportData = () => {
+    exportTeamData(teamAttributes);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-darkBg text-white">
@@ -93,11 +145,19 @@ export default function Dashboard() {
               subtitle="Current Match: Team Alpha vs Team Zenith"
               actions={
                 <>
-                  <Button variant="secondary" size="sm" className="mr-2">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="mr-2"
+                    onClick={handleNewAnalysis}
+                  >
                     <BoltIcon className="mr-2 h-4 w-4" />
                     New Analysis
                   </Button>
-                  <Button size="sm">
+                  <Button 
+                    size="sm"
+                    onClick={handleExportData}
+                  >
                     <DownloadIcon className="mr-2 h-4 w-4" />
                     Export Data
                   </Button>
@@ -129,7 +189,10 @@ export default function Dashboard() {
 
                 {/* AI Insights */}
                 <div>
-                  <AIInsights insights={aiInsights} />
+                  <AIInsights 
+                    insights={aiInsights} 
+                    onGenerateMore={generateMoreInsights} 
+                  />
                 </div>
               </div>
 
@@ -166,6 +229,17 @@ export default function Dashboard() {
       </div>
 
       <MobileNav />
+      
+      {/* Add the Strategy Generation Dialog */}
+      {isGeneratingAnalysis && (
+        <StrategyGenerationDialog
+          onClose={() => setIsGeneratingAnalysis(false)}
+          onComplete={(data) => {
+            setIsGeneratingAnalysis(false);
+            handleAnalysisComplete({ winPercentage: data?.winRate || 68 });
+          }}
+        />
+      )}
     </div>
   );
 }

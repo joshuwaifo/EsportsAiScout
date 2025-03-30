@@ -281,24 +281,27 @@ export default function Strategy() {
       </div>
 
       {/* Strategy Generation Dialog */}
-      <StrategyGenerationDialog 
-        isOpen={isGeneratingStrategy || isGeneratingTeamStrategy || isGeneratingInsights}
-        onClose={() => {
-          setIsGeneratingStrategy(false);
-          setIsGeneratingTeamStrategy(false);
-          setIsGeneratingInsights(false);
-        }}
-        teamName={currentTeam}
-        onComplete={handleStrategyComplete}
-      />
+      {(isGeneratingStrategy || isGeneratingTeamStrategy || isGeneratingInsights) && (
+        <StrategyGenerationDialog 
+          onClose={() => {
+            setIsGeneratingStrategy(false);
+            setIsGeneratingTeamStrategy(false);
+            setIsGeneratingInsights(false);
+          }}
+          teamName={currentTeam}
+          onComplete={handleStrategyComplete}
+        />
+      )}
       
       {/* Full Report Generation Dialog */}
-      <FullReportGenerationDialog 
-        isOpen={isGeneratingFullReport}
-        onClose={() => setIsGeneratingFullReport(false)}
-        teamAttributes={teamAttributes}
-        onComplete={handleFullReportComplete}
-      />
+      {isGeneratingFullReport && (
+        <FullReportGenerationDialog 
+          isOpen={true}
+          onClose={() => setIsGeneratingFullReport(false)}
+          teamAttributes={teamAttributes}
+          onComplete={handleFullReportComplete}
+        />
+      )}
 
       <MobileNav />
     </div>
