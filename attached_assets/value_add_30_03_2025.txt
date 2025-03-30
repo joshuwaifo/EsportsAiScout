@@ -1,0 +1,70 @@
+
+
+## AI Coach Q&A (Interactive Coach Chat)  
+**Description:** This feature provides a chat interface where a coach can ask strategy or player-related questions and receive AI-driven answers. It’s like having an AI assistant coach that offers quick insights or suggestions. This Q&A interface will enhance strategic decision-making by allowing the user to query the AI on demand (for example, asking about opponent weaknesses or player performance). The chat will be integrated into the app with a new page and navigation link, using the project’s existing styling and context.
+
+**Replit AI Prompt:**  
+```markdown
+Implement an **AI Coach Q&A** feature for the app. Create a new page (e.g. `CoachQA` page) that presents a chat-like interface where the user (coach) can ask questions and get answers from an AI assistant. The page should include: 
+- A **scrollable conversation area** showing a history of Q&A (user questions and AI responses in a chat format).
+- A **text input field and a Send button** at the bottom for submitting new questions.
+
+When the user types a question and hits Send: 
+1. Display the user's question in the conversation area (as a user message bubble).
+2. **Generate an AI answer** and display it as the assistant’s response. For now, simulate the AI logic with simple rules or canned responses (no actual API call needed). For example, if the question mentions a strategy or a player name, return a relevant tip or insight (you can use some of the existing insights or make a reasonable suggestion).
+
+**Integration details:**  
+- Add a new navigation item “Coach Q&A” to the sidebar (`Sidebar` component), with an appropriate icon (for example, a message/chat icon from lucide-react) and link it to this new page (e.g., route `/coach` or `/coachQA`).  
+- Ensure the new page uses the project’s layout (Sidebar, MobileNav) and styling (tailwind classes consistent with dark theme). Use existing UI components where possible (e.g., Buttons, Card for chat bubbles or Container for the chat area).
+
+The end result should be a fully functional Q&A page where the user can enter a question and see an AI answer appear, demonstrating an interactive coaching assistant.
+```  
+
+## One Key Strategy  
+**Description:** This feature highlights a single most important strategic insight (“one key strategy”) for the upcoming match or current team situation. It automatically identifies a critical focus area from the data – for example, a major weakness to address or strength to leverage – and presents it prominently to the user. This gives coaches a quick, at-a-glance recommendation on what to prioritize. We will derive this insight from existing mock data (such as team performance attributes) and display it at the top of the Strategy page with distinct styling.
+
+**Replit AI Prompt:**  
+```markdown
+Add a **“One Key Strategy” highlight** to the Strategy page. This should surface the single most important tactical insight for the next match in a prominent way. Requirements:
+- On the **Strategy page** (`pages/strategy.tsx`), create a new highlighted section (for example, a card or banner at the top of the content) titled “One Key Strategy”. Use a distinctive style or icon (e.g. a **BoltIcon** or similar) to make it stand out.
+- Determine the content of this key strategy by analyzing existing data. For now, use the team’s attributes from `teamAttributes` (the radar chart data). **Identify the weakest attribute** (the one with the lowest value) as the area to focus. For example, if “Vision” is the lowest attribute at 0.60, the key strategy might be: *“Improve vision control – focus on warding and map awareness (current team vision score is 60%).”*  Generate a short sentence highlighting this focus area.
+- Display this insight inside the new card/banner with a brief explanation. Include the attribute name and value to make it concrete (e.g., “Vision 60%” as part of the text).
+- Ensure the styling matches the app (use the existing Card component or similar container with the dark theme). The text should be visible and concise, possibly with an icon next to it for emphasis.
+
+This feature should clearly show one crucial strategy tip at a glance when the user visits the Strategy page, derived from the team’s data.
+```  
+
+## Scouting Report Generator (Player Full Profile Modal)  
+**Description:** The Scouting Report Generator provides a detailed report for an individual player, helping talent scouts evaluate prospects. With this feature, clicking “Full Profile” on a player will bring up a comprehensive report including the player’s stats (KDA, win rate, number of tournaments, rating, skills, etc.) and an AI-generated summary of their strengths and weaknesses. It demonstrates AI-driven insights in scouting by highlighting what the player excels at and where they could improve. The report will be shown in a modal dialog for a smooth in-app experience.
+
+**Replit AI Prompt:**  
+```markdown
+Enhance the **Scouting page’s player cards** with a **“Scouting Report” modal** that opens when a user clicks the **Full Profile** button. Implement the following:
+- In the `PlayerCard` component, attach functionality to the "Full Profile" `<Button>` (currently present on each card) so that clicking it opens a modal dialog showing that player’s detailed scouting report.
+- Use the app’s existing UI components for modals (e.g., import `Dialog`, `DialogTrigger`, `DialogContent`, etc., from the UI library) to create a centered pop-up. The modal should have a close button or click-away to dismiss.
+- **Modal Content:** Include the player's key information and an AI-generated analysis:
+  - Player name, role, and position at the top (perhaps as a header).
+  - Important stats: KDA ratio, win rate, number of tournaments, rating (all available in the `player` data object).
+  - Skills breakdown: list the player’s skill categories (e.g. Mechanical Skill, Game Sense, etc. from `player.skills`) with their values.
+  - An **AI commentary** paragraph highlighting strengths and weaknesses. Derive this from the stats: for example, identify the highest skill (or a very high stat like win rate) and mention it as a strength, and identify a lower stat/skill to mention as an area for improvement. *Example:* “ShadowStriker excels in Versatility and Mechanical Skill, making them formidable in diverse situations. However, their Team Play (79%) is a bit lower, so there’s room to improve coordination with teammates.”
+- Style the modal to match the theme (dark background, white text). Use `<DialogHeader>` and `<DialogTitle>` for the title, and normal text for the analysis. Possibly use slight formatting (bullets or new lines) for clarity in stats vs. commentary.
+- Ensure that this is all self-contained in the modal and does not navigate away – the user should be able to read the report and close it to return to scouting list.
+
+This will create an interactive scouting report feature: clicking **Full Profile** on any player card brings up a detailed report with both raw data and an AI-written summary of that player.
+```  
+
+## Draft Advisor (AI-Powered Recruitment Suggestion)  
+**Description:** The Draft Advisor feature uses AI logic to suggest which new player a team should recruit to improve its performance. It analyzes the current team roster to find a weakness (for example, a role where the team’s performance is lowest) and then recommends a player from the scouting prospects who could fill that gap. This directly showcases AI-driven decision support for talent scouting. The suggestion will be displayed on the Team page, giving coaches a clear idea of a possible roster improvement.
+
+**Replit AI Prompt:**  
+```markdown
+Introduce an **AI Draft Advisor** on the **Team page** to recommend roster improvements. Implement a new section on the Team page that analyzes the current team and suggests one player from the scouting prospects to draft. Details:
+- After listing the current team members (`teamMembers`) on the Team page, add a card or section titled “AI Draft Advisor” with the recommendation.
+- **Analysis Logic:** Identify a potential weakness in the team. For simplicity, use the team member with the **lowest win rate** (from `teamMembers` data) as the weak point. Compare that value with available players in `playerProspects`:
+  - Find a prospect who plays a similar role (if possible) and has a **higher win rate** or better relevant stats than the identified team member.
+- **Recommendation Content:** Display a sentence or two such as: *“**Draft Recommendation:** Consider replacing **PlayerX** (current Top laner, win rate 55%) with **PlayerY** from scouting (Top lane prospect, win rate 75%). PlayerY could improve the team’s performance in that role.”* Include the names, roles, and win rates (or other stats) to make the suggestion concrete. If the roles don’t match exactly, still choose a strong prospect to highlight and mention the role.
+- Present this info clearly, perhaps as a list or a highlighted text within the card. You can use the existing Card component for styling, with a header for the section name.
+- Ensure the styling fits with the rest of the page (use similar text colors, etc., and maybe an icon like a **UsersIcon** or **ArrowUpIcon** to indicate improvement).
+
+This Draft Advisor section should immediately show one high-value recruitment suggestion on the Team page, demonstrating how the AI can assist in **talent scouting and team optimization** by recommending the right player to add to the roster.
+```

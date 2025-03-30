@@ -1,8 +1,51 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { insertPlayerSchema, insertMatchSchema, insertTeamSchema, insertStrategySchema } from "@shared/schema";
+import OpenAI from "openai";
+import multer from "multer";
+import * as fs from "fs";
+import * as path from "path";
+import * as crypto from "crypto";
+
+// Set up OpenAI client with API key from environment variable
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Configure multer for file uploads
+const storage_config = multer.diskStorage({
+  destination: (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+    const uploadDir = path.join(__dirname, '../uploads');
+    // Create uploads directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+    // Generate unique filename with original extension
+    const uniqueSuffix = crypto.randomBytes(16).toString('hex');
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage_config,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB file size limit
+  fileFilter: (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    // Accept only specific file types
+    const allowedTypes = ['.csv', '.json', '.xlsx', '.jpg', '.jpeg', '.png'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only CSV, JSON, Excel, JPG, JPEG and PNG are allowed.'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes for players
@@ -229,6 +272,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error performing analysis:", error);
       res.status(500).json({ message: "Failed to perform analysis" });
+    }
+  });
+
+  // Strategy AI endpoint for player scouting and analysis
+  app.post("/api/strategy", upload.single('file'), async (req, res) => {
+    try {
+      // Validate request body
+      const { playerName, gameType } = req.body;
+      
+      if (!playerName) {
+        return res.status(400).json({ message: "Player name is required" });
+      }
+      
+      console.log(`Analyzing player ${playerName} for game type: ${gameType || 'Not specified'}`);
+      
+      // Check if a file was uploaded
+      let fileAnalysisNote = null;
+      if (req.file) {
+        console.log(`File uploaded: ${req.file.originalname}, type: ${req.file.mimetype}`);
+        const isImageFile = /^image\/(jpeg|png|jpg)$/i.test(req.file.mimetype);
+        
+        if (isImageFile) {
+          // Log that we would process this with vision models
+          // In a full implementation, we would use OpenAI's vision capabilities or Gemini Pro Vision
+          fileAnalysisNote = "Image analysis would be processed with multimodal AI vision models";
+          console.log(`Image file detected: ${req.file.path}`);
+          
+          // We could potentially encode the image and send it to OpenAI's vision model:
+          // const base64Image = fs.readFileSync(req.file.path, { encoding: 'base64' });
+          // Include this in the GPT-4 Vision request
+        } else {
+          // For data files (CSV, JSON, etc.), we would parse and extract relevant data
+          fileAnalysisNote = "Data file analysis would be processed to extract gameplay statistics";
+          console.log(`Data file detected: ${req.file.path}`);
+        }
+      }
+      
+      // Construct the prompt for OpenAI based on available information
+      let prompt = `Analyze the esports player "${playerName}"`;
+      if (gameType && gameType !== 'all') {
+        prompt += ` for the game ${gameType}`;
+      }
+      
+      prompt += `.\n\nProvide a detailed scouting report that includes:
+      1. The player's key strengths (4-5 items)
+      2. Areas where the player needs development (3-4 items)
+      3. Team fit recommendations (2-3 items)
+      4. A numerical compatibility score (0-100) representing how valuable this player would be to recruit
+      5. A recruitment priority (High, Medium, or Low) based on the analysis\n\n`;
+      
+      prompt += `Format the response as a JSON object with the following structure:
+      {
+        "playerName": "${playerName}",
+        "strengths": ["strength1", "strength2", ...],
+        "weaknesses": ["weakness1", "weakness2", ...],
+        "recommendations": ["recommendation1", "recommendation2", ...],
+        "compatibilityScore": number,
+        "recruitmentPriority": "High|Medium|Low"
+      }`;
+      
+      if (fileAnalysisNote) {
+        prompt += `\n\nNote: ${fileAnalysisNote}`;
+      }
+      
+      console.log("Sending request to OpenAI API...");
+      
+      try {
+        // Call OpenAI API
+        const aiResponse = await openai.chat.completions.create({
+          model: "gpt-4", // Use GPT-4 for more detailed analysis
+          messages: [
+            { role: "system", content: "You are an expert esports talent scout and analyst. Your job is to evaluate players based on their stats, gameplay style, and fit for competitive teams." },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7, // Slightly creative but mostly factual
+          max_tokens: 800, // Limit response size
+          response_format: { type: "json_object" } // Ensure JSON response
+        });
+        
+        console.log("Received response from OpenAI API");
+        
+        // Parse the AI response
+        const content = aiResponse.choices[0].message.content;
+        if (!content) {
+          throw new Error("Empty response from AI model");
+        }
+        
+        // Parse the JSON response
+        const analysisResult = JSON.parse(content);
+        
+        // Add file analysis note if applicable
+        if (fileAnalysisNote) {
+          analysisResult.fileAnalysisNote = fileAnalysisNote;
+        }
+        
+        // Return the analysis to the client
+        res.json(analysisResult);
+        
+      } catch (aiError) {
+        console.error("OpenAI API Error:", aiError);
+        
+        // Fallback to a generic analysis in case of API failure
+        // This would only execute if the OpenAI API call fails
+        console.log("Using fallback analysis due to API error");
+        
+        const fallbackAnalysis = {
+          playerName,
+          strengths: [
+            "Demonstrates solid mechanical skills based on available data",
+            "Shows good decision-making in competitive scenarios",
+            "Adaptable to multiple team compositions",
+            "Strong communication skills in team environments"
+          ],
+          weaknesses: [
+            "Limited tournament experience at top tier level",
+            "Could improve champion/hero pool diversity",
+            "Performance consistency varies under pressure"
+          ],
+          recommendations: [
+            "Would benefit from pairing with an experienced team captain",
+            "Consider for roles requiring mechanical precision",
+            "Good candidate for teams with strong coaching infrastructure"
+          ],
+          compatibilityScore: 78,
+          recruitmentPriority: "Medium",
+          note: "This is a fallback analysis. OpenAI API request failed.",
+          fileAnalysisNote: ""
+        };
+        
+        if (fileAnalysisNote) {
+          fallbackAnalysis.fileAnalysisNote = fileAnalysisNote;
+        }
+        
+        res.json(fallbackAnalysis);
+      }
+      
+    } catch (error) {
+      console.error("Error in strategy analysis:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ 
+        message: "Failed to analyze player strategy", 
+        error: errorMessage 
+      });
+    } finally {
+      // Clean up uploaded file if it exists
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+          console.log(`Deleted uploaded file: ${req.file.path}`);
+        } catch (cleanupError) {
+          console.error("Error cleaning up file:", cleanupError);
+        }
+      }
     }
   });
 
