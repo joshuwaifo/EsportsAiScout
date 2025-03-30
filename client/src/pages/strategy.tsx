@@ -45,7 +45,7 @@ export default function Strategy() {
                   <input 
                     id="search" 
                     name="search" 
-                    className="block w-full py-2 pl-10 pr-3 text-sm placeholder-gray-400 bg-darkBg border border-surface rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white" 
+                    className="block w-full py-2 pl-10 pr-3 text-sm placeholder-gray-400 bg-white border border-surface rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-black" 
                     placeholder="Search..." 
                     type="search" 
                   />

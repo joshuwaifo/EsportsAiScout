@@ -190,7 +190,7 @@ export default function Scouting() {
                           value={playerName}
                           onChange={(e) => setPlayerName(e.target.value)}
                           placeholder="Enter player name or ID" 
-                          className="mt-1 bg-darkBg border-surface text-white"
+                          className="mt-1 bg-white border-surface text-black"
                           required
                         />
                       </div>
@@ -375,7 +375,7 @@ export default function Scouting() {
                         placeholder="Search by player name" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-darkBg border-surface text-white"
+                        className="bg-white border-surface text-black"
                       />
                     </div>
                     <div className="w-full md:w-48">
