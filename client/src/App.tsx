@@ -9,6 +9,9 @@ import Strategy from "@/pages/strategy";
 import Team from "@/pages/team";
 import About from "@/pages/about";
 import CoachQA from "@/pages/coach";
+import { CoachProvider } from "@/context/CoachContext";
+import { PlayerProvider } from "@/context/PlayerContext";
+import { MatchProvider } from "@/context/MatchContext";
 
 function Router() {
   return (
@@ -27,8 +30,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <PlayerProvider>
+        <MatchProvider>
+          <CoachProvider>
+            <Router />
+            <Toaster />
+          </CoachProvider>
+        </MatchProvider>
+      </PlayerProvider>
     </QueryClientProvider>
   );
 }

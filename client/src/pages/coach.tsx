@@ -5,7 +5,10 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SendIcon, BrainIcon, UserIcon } from "lucide-react";
+import { SendIcon, BrainIcon, UserIcon, SparklesIcon } from "lucide-react";
+import { useCoach } from "@/context/CoachContext";
+import { usePlayer } from "@/context/PlayerContext";
+import { useMatch } from "@/context/MatchContext";
 
 // Types for our chat
 interface Message {
@@ -15,45 +18,15 @@ interface Message {
   timestamp: Date;
 }
 
-// AI response generator (mock for now)
-const generateAIResponse = (question: string): string => {
-  // Convert question to lowercase for easier matching
-  const q = question.toLowerCase();
-  
-  // Simple rules-based responses
-  if (q.includes("strategy") || q.includes("tactics")) {
-    return "Based on our team's strengths in objective control, I recommend focusing on early dragon control while maintaining strong vision in the river. Consider drafting champions with good mobility to contest these objectives.";
-  }
-  
-  if (q.includes("draft") || q.includes("pick") || q.includes("ban")) {
-    return "For your upcoming match against Team Zenith, I recommend banning their mid-laner's signature champion (Nova). They have a 75% win rate on this pick and it enables their roaming playstyle that has been effective against defensive teams.";
-  }
-  
-  if (q.includes("player") || q.includes("roster") || q.includes("team")) {
-    return "Looking at your current roster, ShadowStriker is performing exceptionally well with a 4.2 KDA ratio in recent matches. However, I noticed that BlitzMaster has been struggling in the top lane with a 48% win rate. Consider giving them more practice time on tanks rather than carry champions.";
-  }
-  
-  if (q.includes("weakness") || q.includes("improve")) {
-    return "The team's primary weakness appears to be vision control, especially in the mid-game. Your average vision score is 30% below similar ranked teams. Try implementing a rotation pattern where supports and junglers coordinate their ward placements around upcoming objectives.";
-  }
-  
-  if (q.includes("strength") || q.includes("advantage")) {
-    return "Your team excels in late-game teamfights with a 68% win rate in games that go beyond 35 minutes. This is significantly above average and suggests you should consider compositions that can safely scale into the late game.";
-  }
-  
-  if (q.includes("hello") || q.includes("hi") || q.includes("hey")) {
-    return "Hello! I'm your AI coaching assistant. How can I help with your team's strategy or player analysis today?";
-  }
-  
-  // Default response for queries that don't match specific patterns
-  return "I've analyzed your question and would need more specific details about your team or players to provide targeted advice. Could you clarify if you're asking about strategy, player performance, or draft recommendations?";
-};
-
 export default function CoachQA() {
+  const coach = useCoach();
+  const { players, teamPlayers } = usePlayer();
+  const { currentMatch, upcomingMatches, recentMatches } = useMatch();
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      text: "Welcome to AI Coach Q&A. Ask me anything about strategies, player performance, or upcoming matches!",
+      text: "Welcome to AI Coach Q&A. I have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
       isUser: false,
       timestamp: new Date()
     }
@@ -67,6 +40,152 @@ export default function CoachQA() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+  
+  // Enhanced AI response generator with full context
+  const generateAIResponse = (question: string): string => {
+    // Convert question to lowercase for easier matching
+    const q = question.toLowerCase();
+    
+    // Check for player-specific questions
+    const playerNameMentioned = [...coach.teamMembers, ...coach.playerProspects]
+      .map(p => p.name.toLowerCase())
+      .find(name => q.includes(name.toLowerCase()));
+      
+    if (playerNameMentioned) {
+      const playerName = [...coach.teamMembers, ...coach.playerProspects]
+        .find(p => p.name.toLowerCase() === playerNameMentioned)?.name;
+        
+      if (playerName) {
+        const player = coach.getPlayerByName(playerName);
+        
+        if (player) {
+          if (q.includes("stats") || q.includes("performance")) {
+            const stats = 'stats' in player ? player.stats : null;
+            if (stats) {
+              return `${playerName}'s current statistics show a KDA of ${stats.kda} and a win rate of ${stats.winRate}%. ${
+                stats.winRate > 65 ? `This is an impressive win rate that puts them in the top tier of players in their role.` :
+                stats.winRate > 55 ? `This is a solid win rate that indicates good consistency.` :
+                `This win rate shows room for improvement with focused practice.`
+              }`;
+            }
+          }
+          
+          if (q.includes("skill") || q.includes("strength") || q.includes("weakness")) {
+            if ('skills' in player) {
+              const sortedSkills = [...player.skills].sort((a, b) => b.value - a.value);
+              const strongest = sortedSkills[0];
+              const weakest = sortedSkills[sortedSkills.length - 1];
+              
+              return `${playerName}'s analysis shows their greatest strength is ${strongest.name} at ${strongest.value}%, while their area for improvement is ${weakest.name} at ${weakest.value}%. ${
+                strongest.value > 90 ? `Their ${strongest.name} is exceptional and should be leveraged in team strategy.` :
+                `Focused training on ${weakest.name} could significantly improve their overall performance.`
+              }`;
+            }
+          }
+          
+          // General player info
+          return `${playerName} is a ${player.position} player in the ${player.role} role. ${
+            'stats' in player ? `They have a KDA of ${player.stats.kda} and a win rate of ${player.stats.winRate}%.` : ''
+          } ${
+            'tournaments' in player ? `They have participated in ${player.tournaments} tournaments and have a rating of ${player.rating}.` : ''
+          }`;
+        }
+      }
+    }
+    
+    // Check for player comparison
+    if (q.includes(" vs ") || q.includes(" versus ") || q.includes("compare")) {
+      const allPlayers = [...coach.teamMembers, ...coach.playerProspects].map(p => p.name.toLowerCase());
+      const mentionedPlayers = allPlayers.filter(name => q.includes(name));
+      
+      if (mentionedPlayers.length >= 2) {
+        const player1 = [...coach.teamMembers, ...coach.playerProspects]
+          .find(p => p.name.toLowerCase() === mentionedPlayers[0])?.name;
+        const player2 = [...coach.teamMembers, ...coach.playerProspects]
+          .find(p => p.name.toLowerCase() === mentionedPlayers[1])?.name;
+          
+        if (player1 && player2) {
+          return coach.getPlayerComparison(player1, player2);
+        }
+      }
+    }
+    
+    // Strategy questions
+    if (q.includes("strategy") || q.includes("tactics") || q.includes("game plan")) {
+      // Check for specific attribute strategy
+      const attributeMentioned = coach.teamAttributes
+        .map(attr => attr.name.toLowerCase())
+        .find(name => q.includes(name.toLowerCase()));
+        
+      if (attributeMentioned) {
+        const attrName = coach.teamAttributes
+          .find(attr => attr.name.toLowerCase() === attributeMentioned)?.name;
+          
+        if (attrName) {
+          return coach.getStrategyForAttribute(attrName);
+        }
+      }
+      
+      // General strategy based on team composition
+      return `Based on your team's attributes, I recommend focusing on ${
+        coach.teamAttributes.sort((a, b) => b.value - a.value)[0].name
+      } which is your strongest area at ${
+        Math.round(coach.teamAttributes.sort((a, b) => b.value - a.value)[0].value * 100)
+      }%. For your next match against ${
+        upcomingMatches && upcomingMatches.length > 0 ? upcomingMatches[0].teams.away : "upcoming opponents"
+      }, consider drafting champions that excel in this area like ${
+        coach.draftRecommendations.slice(0, 2).map(d => d.name).join(" and ")
+      }.`;
+    }
+    
+    // Draft and picks
+    if (q.includes("draft") || q.includes("pick") || q.includes("ban")) {
+      return `Based on analysis of your team's strengths and upcoming opponents, I recommend the following draft picks: ${
+        coach.draftRecommendations.map(d => d.name).join(", ")
+      }. These picks complement your team's strength in ${
+        coach.teamAttributes.sort((a, b) => b.value - a.value)[0].name
+      } and address your weaker ${
+        coach.teamAttributes.sort((a, b) => a.value - b.value)[0].name
+      } attribute.`;
+    }
+    
+    // Team composition
+    if (q.includes("roster") || q.includes("team composition")) {
+      const teamRoles = coach.teamMembers.map(member => 
+        `${member.name} (${member.role}/${member.position}, KDA: ${member.stats.kda}, Win Rate: ${member.stats.winRate}%)`
+      ).join("\n- ");
+      
+      return `Your current team roster consists of:\n- ${teamRoles}\n\nOverall team strengths include ${
+        coach.teamAttributes.sort((a, b) => b.value - a.value).slice(0, 2).map(attr => attr.name).join(" and ")
+      }, while areas for improvement include ${
+        coach.teamAttributes.sort((a, b) => a.value - b.value).slice(0, 2).map(attr => attr.name).join(" and ")
+      }.`;
+    }
+    
+    // Team weaknesses
+    if (q.includes("weakness") || q.includes("improve")) {
+      return coach.getTeamWeakness();
+    }
+    
+    // Team strengths
+    if (q.includes("strength") || q.includes("advantage")) {
+      return coach.getTeamStrength();
+    }
+    
+    // Greetings
+    if (q.includes("hello") || q.includes("hi") || q.includes("hey")) {
+      return "Hello! I'm your AI coaching assistant with full access to your team's data, player profiles, and strategy information. How can I help you today?";
+    }
+    
+    // Default response with context
+    return `I have information about your team's performance metrics, player profiles, and strategy data. I can analyze specific players like ${
+      coach.teamMembers[0].name
+    } or ${
+      coach.teamMembers[1].name
+    }, compare players, suggest strategies to improve your ${
+      coach.teamAttributes.sort((a, b) => a.value - b.value)[0].name
+    } (your weakest attribute), or recommend draft picks for upcoming matches. What specific aspect would you like insights on?`;
+  };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +245,7 @@ export default function CoachQA() {
                   variant="secondary"
                   onClick={() => setMessages([{
                     id: "welcome",
-                    text: "Welcome to AI Coach Q&A. Ask me anything about strategies, player performance, or upcoming matches!",
+                    text: "Welcome to AI Coach Q&A. I have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
                     isUser: false,
                     timestamp: new Date()
                   }])}
