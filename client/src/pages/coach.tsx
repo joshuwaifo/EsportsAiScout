@@ -5,10 +5,12 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SendIcon, BrainIcon, UserIcon, SparklesIcon } from "lucide-react";
+import { SendIcon, BrainIcon, UserIcon, SparklesIcon, AlertTriangleIcon } from "lucide-react";
 import { useCoach } from "@/context/CoachContext";
 import { usePlayer } from "@/context/PlayerContext";
 import { useMatch } from "@/context/MatchContext";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Types for our chat
 interface Message {
@@ -16,17 +18,19 @@ interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  isError?: boolean;
 }
 
 export default function CoachQA() {
   const coach = useCoach();
   const { players, teamPlayers } = usePlayer();
   const { currentMatch, upcomingMatches, recentMatches } = useMatch();
+  const { toast } = useToast();
   
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      text: "Welcome to AI Coach Q&A. I have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
+      text: "Welcome to AI Coach Q&A. I'm powered by GPT-4o and have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
       isUser: false,
       timestamp: new Date()
     }
@@ -41,8 +45,75 @@ export default function CoachQA() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
   
-  // Enhanced AI response generator with full context
-  const generateAIResponse = (question: string): string => {
+  // Create context string from team data for AI consumption
+  const generateContextData = () => {
+    // Team members context
+    const teamContext = coach.teamMembers.map(member => 
+      `Team Member: ${member.name} (${member.role}/${member.position}), KDA: ${member.stats.kda}, Win Rate: ${member.stats.winRate}%`
+    ).join("\n");
+    
+    // Team attributes context
+    const attributesContext = coach.teamAttributes.map(attr => 
+      `Team Attribute: ${attr.name} - ${Math.round(attr.value * 100)}%`
+    ).join("\n");
+    
+    // Player prospects context
+    const prospectsContext = coach.playerProspects.map(player => {
+      const skills = player.skills.map(skill => `${skill.name}: ${skill.value}%`).join(", ");
+      return `Scouting Prospect: ${player.name} (${player.role}/${player.position}), Match: ${player.matchPercentage}%, KDA: ${player.stats.kda}, Win Rate: ${player.stats.winRate}%, Skills: [${skills}], Tournaments: ${player.tournaments}, Rating: ${player.rating}`;
+    }).join("\n");
+    
+    // Strategy recommendations context
+    const strategyContext = `Draft Recommendations: ${coach.draftRecommendations.map(d => d.name).join(", ")}
+Team Strongest Attribute: ${coach.teamAttributes.sort((a, b) => b.value - a.value)[0].name} (${Math.round(coach.teamAttributes.sort((a, b) => b.value - a.value)[0].value * 100)}%)
+Team Weakest Attribute: ${coach.teamAttributes.sort((a, b) => a.value - b.value)[0].name} (${Math.round(coach.teamAttributes.sort((a, b) => a.value - b.value)[0].value * 100)}%)`;
+
+    // Match context
+    const matchContext = upcomingMatches && upcomingMatches.length > 0 
+      ? `Upcoming Match: vs ${upcomingMatches[0].teams.away} on ${new Date(upcomingMatches[0].date).toLocaleDateString()}`
+      : "No upcoming matches scheduled";
+    
+    // Combine all context
+    return `
+TEAM ROSTER:
+${teamContext}
+
+TEAM ATTRIBUTES:
+${attributesContext}
+
+SCOUTING PROSPECTS:
+${prospectsContext}
+
+STRATEGY DATA:
+${strategyContext}
+
+MATCH INFORMATION:
+${matchContext}
+`;
+  };
+  
+  // Call the OpenAI API for chat response
+  const getAIResponse = async (message: string): Promise<string> => {
+    try {
+      const contextData = generateContextData();
+      
+      const response = await apiRequest<{ response: string, model: string }>('/api/coach-chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          message,
+          context: contextData
+        })
+      });
+      
+      return response.response;
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      throw error;
+    }
+  };
+  
+  // Fallback response if API fails
+  const generateFallbackResponse = (question: string): string => {
     // Convert question to lowercase for easier matching
     const q = question.toLowerCase();
     
@@ -93,101 +164,20 @@ export default function CoachQA() {
       }
     }
     
-    // Check for player comparison
-    if (q.includes(" vs ") || q.includes(" versus ") || q.includes("compare")) {
-      const allPlayers = [...coach.teamMembers, ...coach.playerProspects].map(p => p.name.toLowerCase());
-      const mentionedPlayers = allPlayers.filter(name => q.includes(name));
-      
-      if (mentionedPlayers.length >= 2) {
-        const player1 = [...coach.teamMembers, ...coach.playerProspects]
-          .find(p => p.name.toLowerCase() === mentionedPlayers[0])?.name;
-        const player2 = [...coach.teamMembers, ...coach.playerProspects]
-          .find(p => p.name.toLowerCase() === mentionedPlayers[1])?.name;
-          
-        if (player1 && player2) {
-          return coach.getPlayerComparison(player1, player2);
-        }
-      }
-    }
-    
-    // Strategy questions
-    if (q.includes("strategy") || q.includes("tactics") || q.includes("game plan")) {
-      // Check for specific attribute strategy
-      const attributeMentioned = coach.teamAttributes
-        .map(attr => attr.name.toLowerCase())
-        .find(name => q.includes(name.toLowerCase()));
-        
-      if (attributeMentioned) {
-        const attrName = coach.teamAttributes
-          .find(attr => attr.name.toLowerCase() === attributeMentioned)?.name;
-          
-        if (attrName) {
-          return coach.getStrategyForAttribute(attrName);
-        }
-      }
-      
-      // General strategy based on team composition
-      return `Based on your team's attributes, I recommend focusing on ${
-        coach.teamAttributes.sort((a, b) => b.value - a.value)[0].name
-      } which is your strongest area at ${
-        Math.round(coach.teamAttributes.sort((a, b) => b.value - a.value)[0].value * 100)
-      }%. For your next match against ${
-        upcomingMatches && upcomingMatches.length > 0 ? upcomingMatches[0].teams.away : "upcoming opponents"
-      }, consider drafting champions that excel in this area like ${
-        coach.draftRecommendations.slice(0, 2).map(d => d.name).join(" and ")
-      }.`;
-    }
-    
-    // Draft and picks
-    if (q.includes("draft") || q.includes("pick") || q.includes("ban")) {
-      return `Based on analysis of your team's strengths and upcoming opponents, I recommend the following draft picks: ${
-        coach.draftRecommendations.map(d => d.name).join(", ")
-      }. These picks complement your team's strength in ${
-        coach.teamAttributes.sort((a, b) => b.value - a.value)[0].name
-      } and address your weaker ${
-        coach.teamAttributes.sort((a, b) => a.value - b.value)[0].name
-      } attribute.`;
-    }
-    
-    // Team composition
-    if (q.includes("roster") || q.includes("team composition")) {
-      const teamRoles = coach.teamMembers.map(member => 
-        `${member.name} (${member.role}/${member.position}, KDA: ${member.stats.kda}, Win Rate: ${member.stats.winRate}%)`
-      ).join("\n- ");
-      
-      return `Your current team roster consists of:\n- ${teamRoles}\n\nOverall team strengths include ${
-        coach.teamAttributes.sort((a, b) => b.value - a.value).slice(0, 2).map(attr => attr.name).join(" and ")
-      }, while areas for improvement include ${
-        coach.teamAttributes.sort((a, b) => a.value - b.value).slice(0, 2).map(attr => attr.name).join(" and ")
-      }.`;
-    }
-    
-    // Team weaknesses
-    if (q.includes("weakness") || q.includes("improve")) {
+    // Strategy and other topics
+    if (q.includes("strategy") || q.includes("tactics")) {
       return coach.getTeamWeakness();
     }
     
-    // Team strengths
-    if (q.includes("strength") || q.includes("advantage")) {
+    if (q.includes("team") || q.includes("roster")) {
       return coach.getTeamStrength();
     }
     
-    // Greetings
-    if (q.includes("hello") || q.includes("hi") || q.includes("hey")) {
-      return "Hello! I'm your AI coaching assistant with full access to your team's data, player profiles, and strategy information. How can I help you today?";
-    }
-    
-    // Default response with context
-    return `I have information about your team's performance metrics, player profiles, and strategy data. I can analyze specific players like ${
-      coach.teamMembers[0].name
-    } or ${
-      coach.teamMembers[1].name
-    }, compare players, suggest strategies to improve your ${
-      coach.teamAttributes.sort((a, b) => a.value - b.value)[0].name
-    } (your weakest attribute), or recommend draft picks for upcoming matches. What specific aspect would you like insights on?`;
+    // Default fallback response
+    return "I'm temporarily using local analysis. For detailed insights on specific players, team strategy, or match recommendations, please try again when the advanced AI service is available.";
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!inputValue.trim()) return;
@@ -204,19 +194,42 @@ export default function CoachQA() {
     setInputValue("");
     setIsTyping(true);
     
-    // Simulate AI thinking delay (0.5 - 1.5 seconds)
-    setTimeout(() => {
+    try {
+      // Call GPT-4o API for response
+      const aiResponse = await getAIResponse(userMessage.text);
+      
       // Add AI response
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: generateAIResponse(userMessage.text),
+        text: aiResponse,
         isUser: false,
         timestamp: new Date()
       };
       
       setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      
+      // Show toast notification
+      toast({
+        title: "AI service unavailable",
+        description: "Using fallback analysis mode. Some advanced features may be limited.",
+        variant: "destructive"
+      });
+      
+      // Add fallback AI response
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: generateFallbackResponse(userMessage.text),
+        isUser: false,
+        timestamp: new Date(),
+        isError: true
+      };
+      
+      setMessages((prev) => [...prev, fallbackMessage]);
+    } finally {
       setIsTyping(false);
-    }, Math.random() * 1000 + 500);
+    }
   };
   
   return (
@@ -245,7 +258,7 @@ export default function CoachQA() {
                   variant="secondary"
                   onClick={() => setMessages([{
                     id: "welcome",
-                    text: "Welcome to AI Coach Q&A. I have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
+                    text: "Welcome to AI Coach Q&A. I'm powered by GPT-4o and have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
                     isUser: false,
                     timestamp: new Date()
                   }])}
@@ -266,10 +279,13 @@ export default function CoachQA() {
                     >
                       <div 
                         className={`flex max-w-[80%] items-start ${
-                          message.isUser ? 'bg-primary text-white' : 'bg-darkBg text-white'
-                        } rounded-lg px-4 py-2`}
+                          message.isUser ? 'bg-primary text-white' : 
+                          message.isError ? 'bg-amber-900/80 text-white' : 'bg-darkBg text-white'
+                        } rounded-lg px-4 py-2 ${message.isError ? 'border border-amber-500/60' : ''}`}
                       >
                         {!message.isUser && (
+                          message.isError ? 
+                          <AlertTriangleIcon className="h-5 w-5 mr-2 mt-1 flex-shrink-0 text-amber-400" /> :
                           <BrainIcon className="h-5 w-5 mr-2 mt-1 flex-shrink-0" />
                         )}
                         <div>

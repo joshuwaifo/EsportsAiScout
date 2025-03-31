@@ -275,6 +275,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Coach Q&A AI chat endpoint
+  app.post("/api/coach-chat", async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      console.log("Processing coach chat message:", message.substring(0, 100) + "...");
+      
+      try {
+        // Call OpenAI API with enhanced context
+        const aiResponse = await openai.chat.completions.create({
+          model: "gpt-4o", // Use GPT-4o for enhanced capabilities
+          messages: [
+            { 
+              role: "system", 
+              content: `You are an AI esports coach assistant specializing in game strategy, player analysis, and team management.
+              
+              CONTEXT INFORMATION:
+              ${context || "No specific context provided."}
+              
+              Use this context to provide detailed, personalized responses about players, team strategy, game tactics, and performance metrics.
+              Always consider the context information when answering questions.
+              Be helpful, detailed, and focused on esports coaching and strategy.
+              Your responses should be conversational but highly informative.`
+            },
+            { role: "user", content: message }
+          ],
+          temperature: 0.7,
+          max_tokens: 800,
+        });
+        
+        console.log("Received response from OpenAI GPT-4o");
+        
+        // Return the AI response
+        res.json({ 
+          response: aiResponse.choices[0].message.content,
+          model: aiResponse.model
+        });
+        
+      } catch (aiError) {
+        console.error("OpenAI API Error:", aiError);
+        res.status(500).json({ 
+          message: "Error processing your request with AI service", 
+          error: aiError instanceof Error ? aiError.message : "Unknown AI error" 
+        });
+      }
+    } catch (error) {
+      console.error("Error in coach chat:", error);
+      res.status(500).json({ 
+        message: "Failed to process chat message", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   // Strategy AI endpoint for player scouting and analysis
   app.post("/api/strategy", upload.single('file'), async (req, res) => {
     try {
@@ -341,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Call OpenAI API
         const aiResponse = await openai.chat.completions.create({
-          model: "gpt-4", // Use GPT-4 for more detailed analysis
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
           messages: [
             { role: "system", content: "You are an expert esports talent scout and analyst. Your job is to evaluate players based on their stats, gameplay style, and fit for competitive teams." },
             { role: "user", content: prompt }
