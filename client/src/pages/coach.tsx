@@ -11,6 +11,7 @@ import { usePlayer } from "@/context/PlayerContext";
 import { useMatch } from "@/context/MatchContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from "react-markdown";
 
 // Types for our chat
 interface Message {
@@ -288,8 +289,12 @@ ${matchContext}
                           <AlertTriangleIcon className="h-5 w-5 mr-2 mt-1 flex-shrink-0 text-amber-400" /> :
                           <BrainIcon className="h-5 w-5 mr-2 mt-1 flex-shrink-0" />
                         )}
-                        <div>
-                          <p className="text-sm">{message.text}</p>
+                        <div className="w-full">
+                          <div className="text-sm prose prose-invert prose-sm max-w-none">
+                            <ReactMarkdown>
+                              {message.text}
+                            </ReactMarkdown>
+                          </div>
                           <p className="text-xs opacity-70 mt-1">
                             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
