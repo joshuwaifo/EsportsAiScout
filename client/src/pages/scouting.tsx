@@ -2,7 +2,9 @@ import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import PageHeader from "@/components/layout/PageHeader";
 import PlayerCard from "@/components/scouting/PlayerCard";
+import FighterAnalysisCard from "@/components/scouting/FighterAnalysisCard";
 import { playerProspects } from "@/data/mockData";
+import { sfPlayerData } from "@/data/sfPlayerData";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/context/GameContext";
 import { GamepadIcon } from "lucide-react";
@@ -35,6 +37,7 @@ export default function Scouting() {
   const [searchQuery, setSearchQuery] = useState("");
   const [role, setRole] = useState("all");
   const [game, setGame] = useState("all");
+  const [sfMetric, setSfMetric] = useState("all");
   const [playerName, setPlayerName] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<{
@@ -154,6 +157,9 @@ export default function Scouting() {
   
   // Choose player list based on selected game
   const players = selectedGame === "Street Fighter" ? streetFighterPlayers : playerProspects;
+  
+  // Get detailed SF player data (for advanced scouting)
+  const sfPlayers = sfPlayerData;
   
   // Filter the appropriate player list based on search and role
   const filteredPlayers = players.filter(player => {
@@ -500,7 +506,7 @@ export default function Scouting() {
                         className="bg-white border-surface text-black"
                       />
                     </div>
-                    <div className="w-full md:w-48">
+                    <div className="w-full md:w-48 mr-2">
                       <Select value={role} onValueChange={setRole}>
                         <SelectTrigger className="bg-darkBg border-surface">
                           <SelectValue placeholder="Filter by role" />
@@ -531,21 +537,143 @@ export default function Scouting() {
                         </SelectContent>
                       </Select>
                     </div>
+                    
+                    {/* Street Fighter specific metrics filter */}
+                    {selectedGame === "Street Fighter" && (
+                      <div className="w-full md:w-48">
+                        <Select value={sfMetric} onValueChange={setSfMetric}>
+                          <SelectTrigger className="bg-darkBg border-surface">
+                            <SelectValue placeholder="Filter by metric" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Metrics</SelectItem>
+                            <SelectItem value="execution">High Execution</SelectItem>
+                            <SelectItem value="adaptation">High Adaptation</SelectItem>
+                            <SelectItem value="matchup">Matchup Awareness</SelectItem>
+                            <SelectItem value="micro">Micro Skill</SelectItem>
+                            <SelectItem value="macro">Macro Strategy</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Player Grid */}
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredPlayers.map((player, index) => (
-                  <PlayerCard key={index} player={player} />
-                ))}
-              </div>
+              {/* Player Grid - Show regular cards for non-SF games */}
+              {selectedGame !== "Street Fighter" ? (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredPlayers.map((player, index) => (
+                    <PlayerCard key={index} player={player} />
+                  ))}
+                </div>
+              ) : (
+                /* Street Fighter Advanced Scouting Analysis */
+                <div className="space-y-6">
+                  <div className="bg-surface/30 p-4 rounded-md mb-6">
+                    <div className="flex items-center mb-3">
+                      <GamepadIcon className="h-5 w-5 mr-2 text-primary" />
+                      <h3 className="text-lg font-medium">Street Fighter 6 Pro Scouting Engine</h3>
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      This advanced scouting engine analyzes player performance data from matches to provide detailed insights on execution, 
+                      adaptation, and matchup awareness. Hover over trait badges to see detailed explanations.
+                    </p>
+                  </div>
+                
+                  {sfPlayers
+                    .filter(player => {
+                      const nameMatch = player.name.toLowerCase().includes(searchQuery.toLowerCase());
+                      const roleMatch = role === "all" || 
+                                       player.character.toLowerCase() === role.toLowerCase() || 
+                                       player.traits.some(t => t.toLowerCase() === role.toLowerCase());
+                      
+                      // Apply SF-specific metric filtering
+                      let metricMatch = true;
+                      if (sfMetric !== "all") {
+                        switch(sfMetric) {
+                          case "execution":
+                            metricMatch = player.execution >= 85;
+                            break;
+                          case "adaptation":
+                            metricMatch = player.adaptation >= 85;
+                            break;
+                          case "matchup":
+                            metricMatch = player.matchupAwareness >= 85;
+                            break;
+                          case "micro":
+                            metricMatch = player.microScore >= 85;
+                            break;
+                          case "macro":
+                            metricMatch = player.macroScore >= 85;
+                            break;
+                        }
+                      }
+                      
+                      return nameMatch && roleMatch && metricMatch;
+                    })
+                    .map((player, index) => (
+                      <FighterAnalysisCard 
+                        key={index} 
+                        playerId={player.id}
+                        playerName={player.name}
+                        character={player.character}
+                        execution={player.execution}
+                        adaptation={player.adaptation}
+                        matchupAwareness={player.matchupAwareness}
+                        microScore={player.microScore}
+                        macroScore={player.macroScore}
+                        traits={player.traits}
+                        stats={player.stats}
+                        skills={player.skills}
+                      />
+                    ))}
+                </div>
+              )}
 
-              {filteredPlayers.length === 0 && (
+              {/* No players found message for non-SF games */}
+              {filteredPlayers.length === 0 && selectedGame !== "Street Fighter" && (
                 <div className="text-center py-12">
                   <h3 className="text-xl font-semibold mb-2">No players found</h3>
                   <p className="text-gray-400">Try adjusting your search or filters</p>
+                </div>
+              )}
+              
+              {/* No SF players found */}
+              {selectedGame === "Street Fighter" && sfPlayers.filter(player => {
+                const nameMatch = player.name.toLowerCase().includes(searchQuery.toLowerCase());
+                const roleMatch = role === "all" || 
+                                 player.character.toLowerCase() === role.toLowerCase() || 
+                                 player.traits.some(t => t.toLowerCase() === role.toLowerCase());
+                
+                // Apply SF-specific metric filtering
+                let metricMatch = true;
+                if (sfMetric !== "all") {
+                  switch(sfMetric) {
+                    case "execution":
+                      metricMatch = player.execution >= 85;
+                      break;
+                    case "adaptation":
+                      metricMatch = player.adaptation >= 85;
+                      break;
+                    case "matchup":
+                      metricMatch = player.matchupAwareness >= 85;
+                      break;
+                    case "micro":
+                      metricMatch = player.microScore >= 85;
+                      break;
+                    case "macro":
+                      metricMatch = player.macroScore >= 85;
+                      break;
+                  }
+                }
+                
+                return nameMatch && roleMatch && metricMatch;
+              }).length === 0 && (
+                <div className="text-center py-12 bg-surface/20 rounded-md">
+                  <GamepadIcon className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                  <h3 className="text-xl font-semibold mb-2">No fighters match your criteria</h3>
+                  <p className="text-gray-400">Try adjusting your character selection or metric filters</p>
                 </div>
               )}
             </div>

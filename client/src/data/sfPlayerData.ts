@@ -1,0 +1,178 @@
+// Street Fighter player scouting data
+export const sfPlayerData = [
+  {
+    id: 1,
+    name: "DragonPuncher",
+    character: "Ryu",
+    role: "Main: Ryu",
+    position: "Aggressive",
+    matchPercentage: 95,
+    skills: [
+      { name: "Offense", value: 90 },
+      { name: "Defense", value: 80 },
+      { name: "Execution", value: 85 },
+      { name: "Adaptability", value: 75 },
+      { name: "Mind Games", value: 82 }
+    ],
+    execution: 85,
+    adaptation: 75,
+    matchupAwareness: 88,
+    microScore: 83,
+    macroScore: 78,
+    traits: ["Aggressive Starter", "Combo Master", "Parry Specialist"],
+    tournaments: 12,
+    rating: 4.7,
+    stats: {
+      kda: 3.8,
+      winRate: 78,
+      gamesPlayed: 350,
+      combosAttempted: 45,
+      combosCompleted: 38,
+      antiAirSuccess: "80% (24/30)",
+      throwTechRate: "60% (18/30)",
+      driveImpactSuccess: "75% (15/20)",
+      parrySuccess: "65% (26/40)",
+      poke2HitRate: "48% (72/150)"
+    }
+  },
+  {
+    id: 2,
+    name: "TurtleMaster",
+    character: "Guile",
+    role: "Main: Guile",
+    position: "Defensive",
+    matchPercentage: 88,
+    skills: [
+      { name: "Offense", value: 70 },
+      { name: "Defense", value: 92 },
+      { name: "Execution", value: 80 },
+      { name: "Adaptability", value: 78 },
+      { name: "Mind Games", value: 85 }
+    ],
+    execution: 80,
+    adaptation: 78,
+    matchupAwareness: 90,
+    microScore: 82,
+    macroScore: 85,
+    traits: ["Defensive", "No-Fly Zone", "Zoner", "Meter Efficient"],
+    tournaments: 8,
+    rating: 4.5,
+    stats: {
+      kda: 3.5,
+      winRate: 72,
+      gamesPlayed: 280,
+      combosAttempted: 30,
+      combosCompleted: 24,
+      antiAirSuccess: "92% (46/50)",
+      throwTechRate: "70% (21/30)",
+      driveImpactSuccess: "60% (12/20)",
+      parrySuccess: "55% (11/20)",
+      poke2HitRate: "63% (95/150)"
+    }
+  },
+  {
+    id: 3,
+    name: "ComboQueen",
+    character: "Chun-Li",
+    role: "Main: Chun-Li",
+    position: "Technical",
+    matchPercentage: 90,
+    skills: [
+      { name: "Offense", value: 85 },
+      { name: "Defense", value: 75 },
+      { name: "Execution", value: 93 },
+      { name: "Adaptability", value: 80 },
+      { name: "Mind Games", value: 78 }
+    ],
+    execution: 93,
+    adaptation: 80,
+    matchupAwareness: 82,
+    microScore: 90,
+    macroScore: 79,
+    traits: ["Frame Perfect", "Combo Master", "Tech Wizard"],
+    tournaments: 15,
+    rating: 4.8,
+    stats: {
+      kda: 4.1,
+      winRate: 82,
+      gamesPlayed: 420,
+      combosAttempted: 60,
+      combosCompleted: 56,
+      antiAirSuccess: "75% (30/40)",
+      throwTechRate: "83% (33/40)",
+      driveImpactSuccess: "65% (13/20)",
+      parrySuccess: "70% (28/40)",
+      poke2HitRate: "58% (87/150)"
+    }
+  },
+  {
+    id: 4,
+    name: "GrappleMaster",
+    character: "Zangief",
+    role: "Main: Zangief",
+    position: "Grappler",
+    matchPercentage: 85,
+    skills: [
+      { name: "Offense", value: 88 },
+      { name: "Defense", value: 70 },
+      { name: "Execution", value: 75 },
+      { name: "Adaptability", value: 82 },
+      { name: "Mind Games", value: 90 }
+    ],
+    execution: 75,
+    adaptation: 82,
+    matchupAwareness: 88,
+    microScore: 77,
+    macroScore: 88,
+    traits: ["Download Complete", "Aggressive Starter"],
+    tournaments: 10,
+    rating: 4.4,
+    stats: {
+      kda: 3.2,
+      winRate: 68,
+      gamesPlayed: 320,
+      combosAttempted: 25,
+      combosCompleted: 18,
+      antiAirSuccess: "70% (21/30)",
+      throwTechRate: "45% (9/20)",
+      driveImpactSuccess: "90% (18/20)",
+      parrySuccess: "40% (8/20)",
+      poke2HitRate: "52% (78/150)"
+    }
+  },
+  {
+    id: 5,
+    name: "FlashKicker",
+    character: "Cammy",
+    role: "Main: Cammy",
+    position: "Aggressive",
+    matchPercentage: 92,
+    skills: [
+      { name: "Offense", value: 95 },
+      { name: "Defense", value: 65 },
+      { name: "Execution", value: 88 },
+      { name: "Adaptability", value: 72 },
+      { name: "Mind Games", value: 75 }
+    ],
+    execution: 88,
+    adaptation: 72,
+    matchupAwareness: 80,
+    microScore: 89,
+    macroScore: 72,
+    traits: ["Aggressive Starter", "Frame Perfect", "Combo Master"],
+    tournaments: 14,
+    rating: 4.6,
+    stats: {
+      kda: 3.9,
+      winRate: 76,
+      gamesPlayed: 380,
+      combosAttempted: 50,
+      combosCompleted: 43,
+      antiAirSuccess: "65% (26/40)",
+      throwTechRate: "55% (22/40)",
+      driveImpactSuccess: "70% (14/20)",
+      parrySuccess: "50% (10/20)",
+      poke2HitRate: "65% (97/150)"
+    }
+  }
+];

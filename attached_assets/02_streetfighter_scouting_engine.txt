@@ -1,0 +1,230 @@
+Perfect. I’ll now do deep research into building a technically sound, joyfully expressive AI scouting engine for Street Fighter 6. I’ll focus on:
+- Scoring players on execution, adaptation, matchup awareness
+- Ranking micro (input precision) and macro (round-level decisions)
+- Detecting unique traits (like parry timing, Drive usage habits)
+
+I’ll try to source real-world match data (from CFN or tournament APIs) where possible, and generate sample mock JSONs, score logic, and Replit-ready implementation prompts that align with the SCAI judging objectives.
+
+# Street Fighter 6 AI Scouting Engine Design for EsportsAiScout
+
+To build a **Street Fighter 6–specific AI scouting engine** for the EsportsAiScout app, we propose a solution that **analyzes match data** to score and rank players on key fighting-game skills, while highlighting unique playstyle traits. This design aligns with the SCAI challenge goals of using AI for talent discovery and strategic insights ([objectives.txt](file://file-6HTxrbFDGUbyJADtpF8mnc#:~:text=Discovering%20emerging%20and%20professional%20talents%3A,team%20and%20their%20fitness%20level)) ([objectives.txt](file://file-6HTxrbFDGUbyJADtpF8mnc#:~:text=Improving%20game%20strategy%3A%20AI,avoid%20injury%20and%20aid%20in)). We emphasize a strong technical approach, a clear user interface, and data-driven accuracy – addressing the judging criteria like Technical Implementation, UX, and Evaluation. Below, we detail data sources, data modeling, scoring metrics, multi-match aggregation, trait detection, UI/UX plans, and a Replit implementation prompt.
+
+## Data Sources for Match Data (CFN & Tournament APIs)
+
+Building an AI scout requires **reliable match data**. We consider two main sources:
+
+- **Capcom Fighters Network (CFN):** The official SF6 network tracks online match stats (player rankings, characters, win rates, etc.). *However, CFN offers no public API*, so data access is challenging. The only option is to **scrape the CFN web portal (Buckler’s Boot Camp)** or use unofficial tools ([Does Capcom provide an API with CFN data? : r/StreetFighter](https://www.reddit.com/r/StreetFighter/comments/1btnlnv/does_capcom_provide_an_api_with_cfn_data/#:~:text=SportNo2179)). Community efforts like a fan-made CFN API exist (e.g. the *Cornbread Stats* project) but are unstable ([GitHub - andrewzah/sf6-api](https://github.com/andrewzah/sf6-api#:~:text=This%20is%20a%20rails%20api,statistics%20for%20Street%20Fighter%206)). For our prototype, we might manually retrieve CFN profile data (e.g. match history pages) or use stored replay files.
+
+- **Tournament Platforms (start.gg, Challonge, Toornament):** These provide APIs for brackets and results. For example, start.gg’s API can list completed sets in a tournament ([Get Event Sets/Matches | Start.gg API Series Part 4 - YouTube](https://www.youtube.com/watch?v=XoGaIgHw6bQ#:~:text=Get%20Event%20Sets%2FMatches%20,sets%20from%20events%20hosted)), including players and winners (and sometimes characters used, if recorded). This gives *contextual data* (who played whom, scores) but **not in-game events**. We can use it to identify high-level matches or link to video replays. To get detailed telemetry (combos, move usage), one could parse replay files or utilize computer-vision on match videos – though that is advanced for a prototype.
+
+**Approach:** For this design, we will **simulate data** with mock logs (since direct real-time data is limited). In a real deployment, we’d combine **multiple data feeds** ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=can%20track%20everything%20from%20,the%20system%20with%20reliable%20information)): official sources where possible, community scrapers, and even video analysis. This ensures the engine has rich input while respecting data availability. We’ll assume we can obtain per-match event data either via **CFN scraping** (post-match stats, replay data) or instrumentation (a modified game client or training mode that logs moves).
+
+## Data Modeling: JSON Telemetry of Matches
+
+To analyze matches, we structure the data in **JSON logs** that capture both *event-by-event telemetry* and *summary stats*. Below are mock data formats representing a Street Fighter 6 match, illustrating how we encode player performance and behavior:
+
+```json
+{  
+  "match_id": "SF6_League_Final_1001",
+  "players": [
+    { "name": "PlayerA", "character": "Ken" },
+    { "name": "PlayerB", "character": "Guile" }
+  ],
+  "result": { "winner": "PlayerA", "score": "2-1" },
+  "rounds": [  
+    { "round": 1, "winner": "PlayerA", "duration_seconds": 35,  
+      "playerA_health_remaining": 20, "playerB_health_remaining": 0,  
+      "playerA_opening_move": "Hadoken", "playerB_opening_move": "Walk Back"  
+    },
+    { "round": 2, "winner": "PlayerB", "duration_seconds": 47,  
+      "playerA_health_remaining": 0, "playerB_health_remaining": 15,  
+      "playerA_opening_move": "Jump-In", "playerB_opening_move": "Sonic Boom"  
+    },
+    { "round": 3, "winner": "PlayerA", "duration_seconds": 30,  
+      "playerA_health_remaining": 10, "playerB_health_remaining": 0,  
+      "playerA_opening_move": "Drive Impact", "playerB_opening_move": "Standing Guard"  
+    }  
+  ],
+  "stats": {  
+    "PlayerA": {  
+      "combos_attempted": 12, "combos_completed": 10, "avg_combo_damage": 180,  
+      "dropped_combos": 2, "punish_opportunities": 5, "punish_converted": 4,  
+      "anti_air_attempts": 6, "anti_air_success": 4,  
+      "throws_attempted": 8, "throws_landed": 5, "throws_techd_by_opponent": 3,  
+      "throws_escaped": 2, "throws_escaped_success": 1,  
+      "drive_impacts_used": 3, "drive_impacts_success": 2,  
+      "drive_parries_used": 5, "drive_parries_success": 4,  
+      "reversals_attempted": 2, "reversals_success": 1,  
+      "round_openers": ["Hadoken", "Jump-In", "Drive Impact"]  
+    },  
+    "PlayerB": {  
+      "combos_attempted": 7, "combos_completed": 5, "avg_combo_damage": 150,  
+      "dropped_combos": 2, "punish_opportunities": 3, "punish_converted": 1,  
+      "anti_air_attempts": 4, "anti_air_success": 3,  
+      "throws_attempted": 4, "throws_landed": 4, "throws_techd_by_opponent": 1,  
+      "throws_escaped": 3, "throws_escaped_success": 2,  
+      "drive_impacts_used": 1, "drive_impacts_success": 0,  
+      "drive_parries_used": 2, "drive_parries_success": 1,  
+      "reversals_attempted": 1, "reversals_success": 1,  
+      "round_openers": ["Walk Back", "Sonic Boom", "Standing Guard"]  
+    }  
+  }  
+}
+```
+
+In this **match summary JSON**: each player’s stats include execution details (combos, punishes), defensive stats (anti-airs, throw escapes), and usage of SF6-specific mechanics (Drive Impact, Drive Parry, etc.). We also log **round-by-round outcomes** and even the opening move choice per round (useful for analyzing **round start habits**). 
+
+For deeper analysis or replay, a more granular **event log** can be captured. For example, a timeline of actions might look like:
+
+```json
+[  
+  {"time": 1.2, "round": 1, "attacker": "PlayerA", "move": "Hadoken", "outcome": "hit", "damage": 100},  
+  {"time": 3.5, "round": 1, "attacker": "PlayerB", "move": "Jump HK", "outcome": "hit (counter)", "damage": 80},  
+  {"time": 3.8, "round": 1, "attacker": "PlayerA", "move": "Shoryuken", "outcome": "anti-air success", "damage": 120},  
+  {"time": 6.0, "round": 1, "attacker": "PlayerA", "sequence": "combo", "hits": 3, "damage": 220, "ended_with": "Super Art"},  
+  {"time": 6.2, "round": 1, "event": "KO", "winner": "PlayerA"}  
+]
+```
+
+This **telemetry log** lists significant events: attacks with outcomes (hit, block, whiff), combos, and KO moments. Such fine-grained data lets the AI scout derive metrics like *reaction speed* (time between an opponent’s move and the player’s counter) and identify specific situations (e.g. a **whiff punish** event if an attack hits right after the opponent’s miss). In practice, this data might come from parsing replay files or instrumenting the game. For our engine, we can generate similar structured logs for analysis.
+
+**Why JSON?** Using structured JSON makes it straightforward to compute statistics. The engine will parse these logs to calculate scores (hit ratios, success rates, etc.), enabling rule-based evaluation of **Execution, Adaptation, and Matchup awareness** as described next.
+
+## Scoring Players on Key Skill Categories
+
+We evaluate players on **three core aspects** of performance, as outlined:
+
+- **Execution Score:** Measures how well the player performs mechanical actions under pressure. This includes **combo execution accuracy** (completion rate of combos attempted), **error rate** (e.g. missed inputs or “dropped” combos), and **punish conversion** (how often the player maximizes damage when the opponent makes a mistake). For example, if a player has 10 combo opportunities and drops 5, that’s a 50% execution success. A high execution score means they rarely flub a combo and reliably punish opponent errors with optimal damage. We also factor in **input precision** (e.g. few accidental moves) and **technical actions** like successful cancels. A rule-based formula might be: 
+
+  *Execution = 50% weight combo success rate + 30% weight punish conversion rate + 20% weight error penalty*. 
+
+  *Example:* PlayerA above completed 10/12 combos (~83%) and punished 4/5 opportunities (80%). If we deduct minor points for 2 drops, their Execution score might be around 80/100 – indicating strong consistency.
+
+- **Adaptation Score:** Gauges how the player **changes tactics in response to adversity**. We track if the player improves after a loss or counters the opponent’s habits over a set. Metrics could include **round-by-round pattern changes** (did the player try a different opener after losing a round?), **comeback frequency** (how often they win a round after being behind), and adjustments against specific moves (e.g. if opponent’s first anti-air succeeds, does the player stop jumping as much?). An AI can compare behavior in early rounds vs later rounds: for instance, a player who lost Round 1 but then significantly shifted strategy in Round 2 (using more fireballs or playing safer) would score high in adaptation. Concretely, we might give an adaptation point if a player who loses a round often wins the *next* round (showing learning), or if they start countering a move that hit them repeatedly at first. High adaptation score means *“download complete”* – the player can figure out the opponent ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,Round%201%20to%20Round%203)). A rule-based heuristic: 
+
+  *Adaptation = (wins after loss rate) + (effective change count) – (repeated mistakes count)*. 
+
+  If PlayerA began anti-airing jumps only after getting hit once or twice, that indicates adaptation. If they keep falling for the same trap every round, adaptation score drops.
+
+- **Matchup Awareness Score:** Reflects the player’s **knowledge of the specific character matchup** and the current meta. Street Fighter has diverse characters, each with strengths, weaknesses, and optimal counters. A player with high matchup awareness will **use strategies known to work well against the opponent’s character** and avoid pitfalls that knowledgeable players would know. We measure things like: Does the player punish **unsafe moves** that are specific to the opponent’s character? Do they use *character-specific counters* (e.g. jumping over Guile’s Sonic Booms at ideal ranges, or using throws to beat an opponent who relies on blocking)? Are they managing unique resources properly (e.g. against a grappler, staying at safe distances)? We can also see if they **play the meta** – for example, in SF6 if a certain tactic is known and common at high-level, are they employing it? A simple indicator: if the opponent uses a *move that is easily countered if you know the matchup* and our player consistently fails to counter, that’s low matchup awareness. Conversely, successfully countering or anticipating *character-specific moves* (like parrying a multi-hit projectile that many novices wouldn’t) yields a high score. This can be scored by *percentage of punishable moves actually punished* and *use of recommended counters*. If PlayerA punished 4/5 of Guile’s unsafe “sweep” attacks, that’s an 80% success – good awareness. If they never punish it, it indicates lacking matchup knowledge.
+
+Each category can be scored on a **0–100 scale** or a simpler 5-star rating. For now, a rule-based system suffices to calculate these from the match stats (no ML needed initially, making it transparent). We will validate these scores against expert expectations; e.g., if the engine rates a known top player low on execution, we’d adjust weightings.
+
+## Micro and Macro Skill Ranking
+
+In addition to per-category scores, our engine **ranks players on two levels of skill**:
+
+- **Micro-level Performance:** This covers **moment-to-moment mechanics** – raw execution and reflexes. It aggregates things like **input precision, reaction speed, tech success, parry timing accuracy, and combo skill**. Essentially, Micro score is derived largely from the Execution metrics (and some aspects of defense like anti-airs). For instance, reaction speed can be measured by how quickly a player responds to a projectile or jump-in (from telemetry timestamps). Throw *tech rate* (percentage of throws escaped) indicates defensive reactions. **Parry accuracy** (successful parry attempts vs total) shows timing skill. We combine these into a Micro score. A possible formula: *Micro = 50% Execution score + 20% anti-air & tech + 30% reaction metrics*. This score favors players who excel at **twitch skills** and precise inputs. We can create a leaderboard of Micro scores to see *the most mechanically skilled players*. For example, a player with 90% combo consistency, ~200ms reaction to attacks, and 90th percentile parry success would rank near the top in Micro.
+
+- **Macro-level Performance:** This evaluates **strategic decision-making over a full round or set**. It draws on adaptation and matchup knowledge, as well as resource management and mind-games. Macro metrics include **Drive Gauge management** (did they wisely use the SF6 Drive resources or often end up in burnout?), **Super meter usage** (do they save meter for when it will kill or use it at opportune times?), **round openers** strategy (do they have a game plan at the start of each round and mix it up?), and **comeback ability** (how often they win from a life deficit). It also includes *tempo control* (do they dictate the pace or react to the opponent?) and overall *decision quality* (minimal wasted meter, choosing safe options when ahead, risky moves when behind appropriately). We might quantify Drive Gauge management by the percentage of rounds they went into **burnout** (low percentage is good macro management) and whether they finish rounds with unused resources (a sign of inefficiency). An example rule: *Macro = 40% Adaptation score + 30% Matchup score + 20% resource management + 10% clutch factor*. A high Macro score means the player exhibits smart strategies and **situational awareness** beyond pure execution. Even a slower-reacting player can rank high in Macro if they outsmart opponents with planning and mind-games.
+
+When **ranking players**, the engine can provide separate leaderboards for Micro and Macro skills. This distinction is useful: coaches might seek a high-micro player for their mechanical prowess or identify a high-macro player as a “smart strategist”. We can also combine them (e.g. an overall score that averages micro and macro) for an all-around ranking. The UI could allow sorting by micro or macro score. For example, *PlayerX* might rank #1 in Micro (great execution) but #5 in Macro due to less adaptation – insights that the app can clearly display.
+
+## Detecting Unique Player Traits and Habits
+
+Beyond scores, a key value of an AI scout is identifying **signature traits** or habits for each player. These are nuanced patterns that define a player’s style:
+
+- **Preferred Playstyle:** We categorize whether a player is aggressive, defensive, or balanced. For example, does the player **attack at every opportunity (rushdown)** or do they **play patiently (turtling)**? Metrics like average **time to first hit** in a round, or how often they walk backward vs forward, can signal this. If a player often dashes in and presses offense early, we tag them “Aggressive Starter.” If they block for long periods and rarely initiate, “Defensive.” Other playstyle tags could include *“Zoner”* (uses long-range moves heavily), *“Grappler at heart”* (if they favor throws). These can be derived from move usage frequency and positioning data.
+
+- **Signature Move/Mechanic Usage:** Many players have a favorite move or tactic. The engine will flag if a player leans on something unusually often or notably rarely. For instance, a Ken player who **“hardly uses fireballs, which is unusual for Ken; maybe he prefers close combat.”** ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=For%20example%2C%20it%20knows%20what,%E2%80%9D)). This insight suggests a unique style – perhaps they rely on close-range pressure instead of zoning. Similarly, we can spot if a player spams *Drive Impact* (SF6’s armored attack) or never uses it. High Drive Impact frequency might tag “DI-happy – tends to test opponents’ reactions,” whereas 0 Drive Impacts could mean “no reliance on DI, possibly focusing on other tools.” Another example: a player with **exceptional anti-air consistency** (say they successfully anti-air 90% of jump-ins) could get a badge like “No-Fly Zone” indicating that **jumping at them is a bad idea**. *An AI can track how often a player successfully anti-airs versus how often they get hit by jump-ins as a metric of defensive skill* ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=appropriate%20normal%20move%29,a%20metric%20of%20defensive%20skill)) – consistently high success defines a trait of strong air defense.
+
+- **Situational Habits:** These are patterns in specific contexts: e.g. *wake-up behavior* (do they often perform an invincible **Dragon Punch (DP) reversal** on wake-up? Or always block on wake-up?), *tech patterns* (do they tech throws only after being thrown once?), *clutch usage* (like always doing a Critical Art super when their health is low). For instance, if the log shows that on defense, PlayerA does a wake-up DP 70% of the time after a knockdown, that’s a **risky habit** – our engine would note “Tends to reversal on wake-up frequently.” Conversely, a trait could be “Highly cautious when under pressure (hardly ever uses wake-up DP).” We can detect if a player shines under pressure: e.g. they might have **“clutch factor”** if they win many rounds with 10% HP left. Or check *first-round vs later-round behavior* – maybe someone **downloads opponent** by Round 3 (a trait of adaptive players). 
+
+We’ll implement trait detection with simple rules scanning the stats: e.g., `if anti_air_success_rate > 0.8 then traits.add("Excellent Anti-Air")`. We compare a player’s stat to global averages – if it’s two standard deviations above the mean, it’s “signature high”; if far below, “signature low”. This way, each player profile in the app might list a set of **badges or tags** like *“Combo Master”* (high combo damage), *“Parry Specialist”* (uses parry often successfully), *“Throws Tech Wizard”* (escapes most throws), *“Meter Hoarder”* (ends rounds with full super gauge often), or *“Glass Cannon”* (high offense, low defense). These tags make scouting reports **memorable and quick to grasp**. The engine thus surfaces what makes a player stand out. 
+
+## Aggregating Scores Over Multiple Matches
+
+To truly scout a player, the engine will analyze **multiple matches over time** and update the scores continuously. We design it to handle both **per-match evaluation** and **cumulative tracking**:
+
+- **Per-Match Reports:** After each match (or set), the engine generates the scores and traits as described. This is like a “match report card” – useful for immediate insight. For example, after a tournament set, we might see Execution 75, Adaptation 60, Matchup 80 for PlayerA, with notes on specific habits in that set.
+
+- **Cumulative Profile:** The engine maintains a **player profile** that aggregates data from all matches processed. Rather than a simple average (which could dilute recent changes), we use a **rolling window or weighted system**. Recent matches can be given more weight to reflect current form, while older matches still contribute to long-term tendencies. For instance, we might track a running average Execution score, but if in the last 5 matches the player improved significantly, highlight that trend. The profile could show a **sparklines or a graph of each score over time** to indicate consistency or improvement.
+
+- **Trend Detection:** By comparing data across time, the engine can spot **evolution in a player’s style or skill**. *These continuous scouting insights show progress or new trends – for example, if after a game patch a player performs even better (due to character buffs perhaps), the tool can highlight that* ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=These%20keep%20the%20scouting%20insights,the%20tool%20can%20highlight%20that)). We could log patch versions with matches; if a notable jump in performance correlates with a patch, it might imply the player adapted well or their character got stronger. Similarly, if a player adds a new tactic to their repertoire (e.g. starts using parry more in recent matches), the engine detects this shift.
+
+- **Per-Match vs Overall Scoring:** We define rules for updating scores. One approach: **exponential moving average** – after each match, update `overall_score = overall_score * 0.8 + match_score * 0.2` (for example), so that it smooths out volatility but still shifts with new data. Another approach is simply storing all match stats and computing aggregate percentages globally (e.g. total combos attempted vs total succeeded across all matches). Both are feasible; the latter gives a true overall success rate, while the former highlights recent form. We might use *per-category ELO-like ratings*: if a player consistently outperforms others in execution in matches, their execution rating rises.
+
+- **Resetting and Context:** The engine can allow filtering by context – e.g., “Show this player’s scores in Tournament matches only” vs “Overall including online matches.” This is important because players might perform differently online vs offline. Also, when new content (characters or moves) comes out, old data might be less relevant, so the coach might choose to view the last 3 months of data only. Our engine’s data model will support tagging matches with date and type, enabling such filtered views.
+
+By updating scores over multiple matches, the **scouting engine remains a living profile of the player**. This continuous evaluation is crucial for talent scouting: it can show if a player is on an upward trajectory or if they struggle with specific matchups over time. All these historical insights will be presented in the UI in an accessible way (graphs or comparisons). Importantly, *the engine treats all players with the same criteria for fairness* – an ethical consideration – ensuring that talent evaluation is unbiased and purely data-driven.
+
+## UI/UX Design: Visualizing Scores and Traits 
+
+A **joyful, expressive UI** will make the analytics accessible and engaging. We plan a **React + TypeScript** front-end (suitable for Replit hosting) with a **clean dashboard** for SF6 scouting data. Key UI elements and suggestions:
+
+- **Dashboard Overview:** The main screen can show a list of top players or a specific player’s profile. We use clear sections and headings for Execution, Adaptation, Matchup, Micro, Macro, etc., so the user can easily scan each aspect. Each section could be collapsible for details ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=All%20these%20features%20would%20be,missed%20attack%20from%20max%20distance%E2%80%9D)). For example, a “Mechanical (Micro) Stats” panel and a “Strategic (Macro) Stats” panel.
+
+- **Charts and Graphs:** Visualizing the data is vital. We will incorporate **radar (spider) charts** to give an at-a-glance performance distribution. For instance, a radar chart with axes **Execution, Adaptation, Matchup, Offense, Defense** could show the player’s strengths/weaknesses as a polygon shape. If a player has near-max execution and matchup knowledge but lower adaptation, the shape will be skewed, instantly revealing that profile. We can use a chart library like *Chart.js or D3.js* for this. Additionally, **line charts** can show score trends over time (e.g. execution score per tournament), and **bar charts** can compare the two players’ stats head-to-head for a given match.
+
+- **Trait Badges and Icons:** To make the experience fun, we’ll display detected traits as **badges** or icons. For example, if a player gets the “No-Fly Zone” trait for anti-airs, we show a small icon of an upward punch or a wing clipped symbol, with a tooltip “Excellent at anti-airs: 90% success rate.” A player who frequently lands throws might get a badge with a grappling icon labeled “Throw Master.” These badges could be colored tags (using a palette that stands out on the dark background). By seeing a cluster of tags like *“Aggressive – Combo Master – Glass Cannon”*, a reader immediately gets the vibe of the player’s style. This adds a **gamified feel** and celebrates what makes the player unique.
+
+- **Detailed Stats Tables:** For users (coaches/analysts) who want raw numbers, the UI will have tables for stats. For example, a table under Execution listing “Combo success: 83% (10/12), Punish conversion: 80% (4/5), Avg combo damage: 180, …”. Another table for defensive stats: “Anti-air success: 66%, Throw tech: 50%,” etc. These tables will be tucked into expandable sections so as not to overwhelm casual viewers but available on demand. We’ll format numbers with highlights (e.g., green for good success rates, red for problematic stats like a high drop rate).
+
+- **Color and Theme:** Since it’s Street Fighter-themed, we can use **vibrant visuals** reminiscent of the game’s UI. For example, *Drive Gauge green* and *Critical Art blue* in SF6’s color scheme can accent micro vs macro metrics. Animations can be subtle but fun – e.g. when a new trait is earned, a small sparkle or an animated icon could appear (making the experience feel rewarding). However, we will avoid any clutter that detracts from clarity.
+
+- **Expressiveness and Clarity:** The design will include **tooltips and glossaries** to clarify terminology ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=sections%20for%20detailed%20stats%2C%20and,missed%20attack%20from%20max%20distance%E2%80%9D)). Not all users (or judges) may know what a “whiff punish” or “frame trap” means. We will implement hover tooltips: e.g., hovering over *“Dropped Combo”* might show “The player started a combo but failed to finish it, resulting in no damage.” This ensures the interface is **educational**. We also consider a **“coach’s note”** section per player, where the AI writes a short summary: *“PlayerA is an aggressive Ken with top-notch execution. They rarely use projectiles, preferring close combat. Notably strong anti-airs (4/6 success in last match) but can overuse wake-up DPs.”* Such natural-language notes make the data more narrative.
+
+- **Replay and Highlight Integration:** A stretch goal for UX is integrating match replays. For example, the app could allow uploading a video or linking a YouTube/Twitch VOD. The AI engine could then overlay icons on the timeline where key events happened (like a combo drop or a clutch parry). While implementing full video analysis may be complex, even a simple *“highlight reel generator”* that shows timestamps of “best combo” or “critical mistake” from the data would be valuable. This gives a **visual context** to the stats. For now, we focus on static data visualization with the option to attach videos manually.
+
+All features will be built with **responsive design** (so it works on web and mobile). The **React UI will be structured** with reusable components (cards, charts, badge components). We prioritize a smooth UX: minimal clicks to find information, and a logical flow from overview to detail. The importance of UX is highlighted by the challenge (15% weight) – thus we ensure the interface is intuitive, attractive, and tailored to **Street Fighter’s nuances** (including game-specific terms and icons, not generic charts).
+
+*(In summary, the UI will present **Street Fighter–specific insights** in a tailored interface, showing everything from win rates to behavioral patterns ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=tool%20like%20EsportsAiScout%20can%20add,the%20system%20with%20reliable%20information)). By focusing on what makes SF6 unique and visualizing data clearly, even expert coaches would find the insights valuable ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=By%20focusing%20on%20,driven%20visuals%20and)).)*
+
+## Replit Prototype Implementation Prompt (React/TypeScript)
+
+To demonstrate this concept, we outline a **Replit-ready prompt** for building a prototype in React + TypeScript. This prompt can be used with Replit’s AI or by a developer to quickly scaffold the application using mock data:
+
+> **Project:** Street Fighter 6 Scouting Dashboard (React + TypeScript)  
+> **Description:** Build a single-page React app that displays player scouting insights for SF6. Use **TypeScript** and a modern UI library (e.g. Tailwind CSS or Material-UI for styling). Include data visualizations and trait badges.  
+>  
+> **Data:** Use the following mock data for players (can be stored in a `mockData.ts`):  
+> ```ts
+> interface PlayerStats {  
+>   name: string; character: string;  
+>   execution: number; adaptation: number; matchup: number;  
+>   micro: number; macro: number;  
+>   traits: string[];  
+>   stats: { [key: string]: any }; // detailed stats like combos, antiAirSuccess etc.  
+> }
+> 
+> const players: PlayerStats[] = [  
+>   { name: "PlayerA", character: "Ken",  
+>     execution: 80, adaptation: 70, matchup: 85,  
+>     micro: 82, macro: 78,  
+>     traits: ["Aggressive Starter", "Combo Master", "No-Fly Zone"],  
+>     stats: { combosAttempted: 12, combosCompleted: 10, antiAirSuccess: "4/6", throwTechRate: "50%" }  
+>   },  
+>   { name: "PlayerB", character: "Guile",  
+>     execution: 65, adaptation: 60, matchup: 75,  
+>     micro: 62, macro: 70,  
+>     traits: ["Zoner", "Meter Efficient"],  
+>     stats: { combosAttempted: 7, combosCompleted: 5, antiAirSuccess: "3/4", throwTechRate: "66%" }  
+>   }  
+> ];
+> export default players;
+> ```  
+> *(Feel free to adjust or extend this structure.)*  
+>  
+> **Features to Implement:**  
+> 1. **Player List and Selection:** Display a sidebar or dropdown listing players by name. When a user selects a player, show their scouting report.  
+> 2. **Radar Chart for Skill Scores:** For the selected player, render a radar chart with axes for *Execution, Adaptation, Matchup, Micro, Macro*. Use a chart library (e.g. `react-chartjs-2` with Chart.js) to plot the values (normalized to 0-100). This gives a visual profile of the player.  
+> 3. **Trait Badges:** Below the chart, display a series of badge UI components for each trait in `player.traits`. Use a simple styled span or Material-UI `<Chip>` with an icon if available (e.g. a fire icon for “Aggressive”, a shield for “Defensive”). Ensure they have tooltips – e.g., "No-Fly Zone: very high anti-air success rate."  
+> 4. **Detailed Stats Table:** Show a table or card grid of the key stats from `player.stats`. Each entry can be a card showing the stat name and value (for instance, *Combo Completion: 10/12 (83%)*, *Anti-Air: 4/6 success (66%)*, etc.). Highlight values in green/red based on thresholds (you can define some in code for demo).  
+> 5. **Styling:** Use a Street Fighter theme – for example, a dark background with bright accent colors. You can import a Google Font that resembles the game’s style for headings. Use CSS or Tailwind to add a dynamic feel (e.g., hover effects on badges, a background image or subtle texture). Keep layout responsive (stack on mobile).  
+> 6. **Interactivity & Joy:** Add small interactive touches: e.g., a toggle to switch the radar chart between showing the 5 metrics vs maybe only Micro vs Macro. Or a button to “simulate new match” which would update the stats randomly (just to show the dashboard can update). Include at least one chart animation (Chart.js does this by default on load).  
+> 7. **Tooltips/Info:** Implement tooltips on complex terms: e.g., wrap terms like “Drive Impact” or “Tech” in an info icon that on hover shows a short description (use a library like Tippy.js or Material-UI Tooltip).  
+>  
+> **Bonus (optional):** Add a section to compare two players (side-by-side radar or stat comparison) to emulate a head-to-head scouting report. This could simply use two radar charts side by side when two names are selected.  
+>  
+> **Development Notes:** Use create-react-app or Vite for setup (Replit may have a React template ready). Ensure TypeScript interfaces (like `PlayerStats`) are used for props and state to catch errors. No backend is required; we will use the mock data as if it was fetched. Focus on a clean component structure: e.g., `PlayerSelect`, `RadarChart`, `StatTable`, `TraitBadges` components, all rendered in an `App` container.  
+>  
+> **Goal:** The end result should be a **functional prototype** where one can select a player and see their scouting dashboard. Even with mock data, it should illustrate how the AI scouting engine’s outputs (scores and traits) will be presented. The interface should be polished and explanatory, suitable for a demo to judges (with the emphasis on clarity and insight).  
+
+By following the above prompt, a developer (or AI assistant) on Replit can quickly produce a working mock-up of the scouting app. This serves as a proof-of-concept, which we can later connect to real data pipelines (CFN/tournament APIs) and a database.
+
+## Conclusion
+
+In conclusion, our **Street Fighter 6 AI scouting engine** design combines *data-driven analysis* with *esports expertise* to evaluate players on execution, adaptation, and strategy. We outlined how to gather and simulate match data, how to compute meaningful scores and traits from that data, and how to present it in an engaging way. This solution directly addresses the challenge of **discovering and evaluating gaming talent using AI** ([objectives.txt](file://file-6HTxrbFDGUbyJADtpF8mnc#:~:text=Discovering%20emerging%20and%20professional%20talents%3A,team%20and%20their%20fitness%20level)) and **improving game strategy through detailed performance insights** ([objectives.txt](file://file-6HTxrbFDGUbyJADtpF8mnc#:~:text=Improving%20game%20strategy%3A%20AI,avoid%20injury%20and%20aid%20in)). Technically, it is implementable with available tools and straightforward algorithms (making it feasible within a hackathon timeline), and it sets the stage for future enhancements (like machine learning models for pattern recognition or real-time analysis). 
+
+Crucially, our approach is aligned with the **SCAI judging criteria**: we prioritized a solid **Technical Implementation** (clear architecture and prototyping plan), a great **User Experience** (visual, interactive, and easy to understand), and **Evaluation Accuracy** (metrics rooted in actual gameplay scenarios). We also remain mindful of **Responsible AI** practices – using only gameplay data and treating all players equally with transparent criteria. All insights are presented with context and explanations (a nod to **Presentation & Documentation** quality). By translating the intuition of a fighting game coach into **data-driven visuals and recommendations ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=training%20and%20competition,driven%20visuals%20and%20recommendations))**, this AI scouting engine can greatly enhance how players and coaches understand performance. It turns raw match data into actionable scouting reports – helping identify what elevates a player (e.g. *high anti-air success, smart meter use* ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=training%20and%20competition,driven%20visuals%20and%20recommendations))) and where they can improve – ultimately giving competitors an edge in training and tournaments.
+
