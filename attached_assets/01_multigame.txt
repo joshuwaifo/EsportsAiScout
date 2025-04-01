@@ -1,0 +1,23 @@
+Prompt 1: Add Global Game Selection Dropdown
+Feature: These game titles are for the ESports 2026 Olympics, make sure that you have banner for the ESports 26 Olympics.Implement a global game selection so users can switch between supported titles (Street Fighter, League of Legends, PUBG Mobile, etc.). The selection should be available in the UI (e.g. top of sidebar) and affect all pages. We’ll use React Context to store the current game and update all pages when it changes. Instructions:
+Create a Game Context: In client/src/context/GameContext.tsx, create a React context to hold the selected game and a setter. Use TypeScript – for example, define a type like type GameTitle = "Street Fighter" | "League of Legends" | "PUBG Mobile";. Initialize the context with default value "Street Fighter". Export a GameProvider component that uses useState to manage the current selectedGame (default to "Street Fighter") and provides { selectedGame, setSelectedGame } to consumers. Also export a custom hook (e.g. useGame()) or context object for components to access this easily.
+Provide Context in App: Open client/src/App.tsx. Import the new GameProvider and wrap the app’s content with it. For example, wrap the <Switch> ... </Switch> (or the highest level of routes/elements) with <GameProvider> ... </GameProvider>. This ensures all pages can access the selected game state. Make sure to place it inside the <QueryClientProvider> but outside the routing switch so it’s globally available.
+Add Dropdown to UI: Open the sidebar component at client/src/components/layout/Sidebar.tsx. Import useContext and your GameContext (or useGame hook) at the top. Also import the UI Select components from @/components/ui/select (e.g. { Select, SelectTrigger, SelectContent, SelectItem, SelectValue }).
+Locate the JSX where the sidebar’s header or top section is defined (for example, the <div> containing the app logo “AILeague”). Below the title/logo span, insert a dropdown for game selection.
+Use the Select component: for example,
+jsx
+Copy
+<div className="my-2">
+  <Select value={selectedGame} onValueChange={setSelectedGame}>
+    <SelectTrigger className="w-full text-sm">
+      <SelectValue placeholder="Select game" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="Street Fighter">Street Fighter</SelectItem>
+      <SelectItem value="League of Legends">League of Legends</SelectItem>
+      <SelectItem value="PUBG Mobile">PUBG Mobile</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
+This creates a dropdown list of games. The onValueChange should call the context’s setSelectedGame to update the state. Use full width (w-full) and appropriate margins/padding (as shown with my-2) so it aligns with the sidebar styling. The text color should inherit or be readable on the dark sidebar (the Select component from our UI library should handle styling, but ensure it matches the Tailwind classes for form elements in dark mode).
+Verify Global Effect: After implementing, the app will have a game selector at the sidebar’s top. Changing the selection updates selectedGame in context. In subsequent prompts, we will make each page listen to this value and update their content. (No new pages are created; we’re injecting this into existing layout components.)

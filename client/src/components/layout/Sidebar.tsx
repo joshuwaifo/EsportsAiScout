@@ -6,12 +6,22 @@ import {
   UsersIcon, 
   SettingsIcon,
   InfoIcon,
-  MessageSquareIcon
+  MessageSquareIcon,
+  GamepadIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useGame } from "@/context/GameContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { selectedGame, setSelectedGame } = useGame();
 
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
@@ -31,10 +41,30 @@ export default function Sidebar() {
   return (
     <div className="hidden lg:flex lg:flex-shrink-0">
       <div className="flex flex-col w-64 border-r border-surface">
-        <div className="flex items-center justify-center h-16 px-4 bg-surface">
-          <span className="text-2xl font-bold text-white">AI<span className="text-[#39FF14]">League</span></span>
+        <div className="flex flex-col items-center justify-center h-20 px-4 pt-2 bg-surface">
+          <span className="text-2xl font-bold text-white mb-1">AI<span className="text-[#39FF14]">League</span></span>
+          <div className="text-xs font-semibold tracking-wider text-center text-[#39FF14] uppercase mb-2">
+            ESports 2026 Olympics
+          </div>
         </div>
         <div className="flex flex-col flex-grow px-4 py-4 overflow-y-auto bg-darkBg">
+          <div className="mb-3">
+            <Select value={selectedGame} onValueChange={(value) => setSelectedGame(value as any)}>
+              <SelectTrigger className="w-full text-sm bg-surface border-surface hover:border-primary">
+                <div className="flex items-center">
+                  <GamepadIcon className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Select game" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-surface border-surface">
+                <SelectItem value="Street Fighter" className="text-white">Street Fighter</SelectItem>
+                <SelectItem value="League of Legends" className="text-white">League of Legends</SelectItem>
+                <SelectItem value="PUBG Mobile" className="text-white">PUBG Mobile</SelectItem>
+                <SelectItem value="Tekken" className="text-white">Tekken</SelectItem>
+                <SelectItem value="King of Fighters" className="text-white">King of Fighters</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <nav className="flex-1 space-y-2">
             {navigationItems.map((item) => {
               const isActive = location === item.href || 

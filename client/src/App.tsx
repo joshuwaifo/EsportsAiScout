@@ -12,6 +12,7 @@ import CoachQA from "@/pages/coach";
 import { CoachProvider } from "@/context/CoachContext";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { MatchProvider } from "@/context/MatchContext";
+import { GameProvider } from "@/context/GameContext";
 
 function Router() {
   return (
@@ -30,14 +31,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <PlayerProvider>
-        <MatchProvider>
-          <CoachProvider>
-            <Router />
-            <Toaster />
-          </CoachProvider>
-        </MatchProvider>
-      </PlayerProvider>
+      <GameProvider>
+        <PlayerProvider>
+          <MatchProvider>
+            <CoachProvider>
+              <Router />
+              <Toaster />
+            </CoachProvider>
+          </MatchProvider>
+        </PlayerProvider>
+      </GameProvider>
     </QueryClientProvider>
   );
 }

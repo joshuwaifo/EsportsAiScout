@@ -275,38 +275,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Coach Q&A AI chat endpoint
+  // Coach Q&A AI chat endpoint with game-specific context
   app.post("/api/coach-chat", async (req, res) => {
     try {
-      const { message, context } = req.body;
+      const { message, context, gameTitle, chatHistory } = req.body;
       
       if (!message) {
         return res.status(400).json({ message: "Message is required" });
       }
       
       console.log("Processing coach chat message:", message.substring(0, 100) + "...");
+      console.log(`Game context: ${gameTitle || 'Not specified'}`);
       
       try {
+        // Prepare game-specific guidance for the AI
+        let gameContext = "";
+        if (gameTitle) {
+          switch (gameTitle) {
+            case "Street Fighter":
+              gameContext = `Focus on Street Fighter mechanics including:
+                - Frame data analysis and advantage states
+                - Matchup knowledge and character-specific strategies
+                - Anti-air techniques and defensive options
+                - Combo optimization and execution tips
+                - Meter/resource management (Drive Gauge, Super Meter)
+                - Footsies and neutral game concepts
+                - Adaptation strategies mid-match`;
+              break;
+            case "League of Legends":
+              gameContext = `Focus on League of Legends concepts including:
+                - Team composition and champion synergies
+                - Lane matchups and wave management
+                - Objective control (Dragon, Baron, Herald)
+                - Warding strategies and vision control
+                - Item builds and power spikes
+                - Teamfight positioning and engagement timing
+                - Macro decision making and rotations`;
+              break;
+            case "PUBG Mobile":
+              gameContext = `Focus on PUBG Mobile strategies including:
+                - Drop locations and loot prioritization
+                - Circle positioning and rotation tactics
+                - Vehicle usage and positioning
+                - Squad coordination and communication
+                - Engagement decision-making
+                - Final circle tactics and positioning
+                - Weapon selection and attachments`;
+              break;
+            case "Tekken":
+              gameContext = `Focus on Tekken mechanics including:
+                - Move list knowledge and frame data
+                - Combo optimization and wall carry techniques
+                - Punishment strategies and matchup knowledge
+                - Movement techniques (Korean Backdash, Wavedash)
+                - Okizeme and wake-up options
+                - Throw breaking and defensive options
+                - Character-specific strategies`;
+              break;
+            case "King of Fighters":
+              gameContext = `Focus on King of Fighters concepts including:
+                - Team order strategy (point, mid, anchor positions)
+                - Character synergy in the 3v3 format
+                - MAX mode usage and combo extensions
+                - Defensive options (rolls, guard cancel)
+                - Meter management across multiple characters
+                - Short hop and hyper hop techniques
+                - Match-up specific adaptations`;
+              break;
+            default:
+              gameContext = "Focus on general esports concepts including mechanical skill, strategic thinking, and mental fortitude.";
+          }
+        }
+        
+        // Define message role type for proper typing
+        type MessageRole = "system" | "user" | "assistant";
+        
+        // Prepare system message
+        const systemContent = `You are an AI esports coach assistant specializing in ${gameTitle || "various esports games"}.
+        
+        ${gameContext}
+        
+        CONTEXT INFORMATION:
+        ${context || "No specific context provided."}
+        
+        Use this context to provide detailed, personalized responses about players, team strategy, game tactics, and performance metrics.
+        Always consider the context information when answering questions.
+        Be helpful, detailed, and focused on esports coaching and strategy.
+        Format your response using markdown for better readability when appropriate.
+        Your responses should be conversational but highly informative.`;
+        
+        // Format chat history if provided
+        const formattedHistory = Array.isArray(chatHistory) ? 
+          chatHistory.map(msg => ({
+            role: msg.isUser ? "user" : "assistant",
+            content: msg.text
+          })) : [];
+        
+        // Prepare messages array with proper typing
+        const messages: Array<{role: MessageRole, content: string}> = [
+          { role: "system", content: systemContent }
+        ];
+        
+        // Add chat history if available
+        if (formattedHistory && formattedHistory.length > 0) {
+          formattedHistory.forEach(msg => {
+            messages.push({
+              role: (msg.role === "user" ? "user" : "assistant") as MessageRole,
+              content: msg.content
+            });
+          });
+        }
+        
+        // Add current user message
+        messages.push({ role: "user", content: message });
+        
         // Call OpenAI API with enhanced context
         const aiResponse = await openai.chat.completions.create({
           model: "gpt-4o", // Use GPT-4o for enhanced capabilities
-          messages: [
-            { 
-              role: "system", 
-              content: `You are an AI esports coach assistant specializing in game strategy, player analysis, and team management.
-              
-              CONTEXT INFORMATION:
-              ${context || "No specific context provided."}
-              
-              Use this context to provide detailed, personalized responses about players, team strategy, game tactics, and performance metrics.
-              Always consider the context information when answering questions.
-              Be helpful, detailed, and focused on esports coaching and strategy.
-              Your responses should be conversational but highly informative.`
-            },
-            { role: "user", content: message }
-          ],
+          messages: messages,
           temperature: 0.7,
-          max_tokens: 800,
+          max_tokens: 1000,
         });
         
         console.log("Received response from OpenAI GPT-4o");
@@ -397,12 +485,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Sending request to OpenAI API...");
       
       try {
+        // Define message role type for proper typing
+        type MessageRole = "system" | "user" | "assistant";
+        
         // Call OpenAI API
         const aiResponse = await openai.chat.completions.create({
           model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
           messages: [
-            { role: "system", content: "You are an expert esports talent scout and analyst. Your job is to evaluate players based on their stats, gameplay style, and fit for competitive teams." },
-            { role: "user", content: prompt }
+            { role: "system" as MessageRole, content: "You are an expert esports talent scout and analyst. Your job is to evaluate players based on their stats, gameplay style, and fit for competitive teams." },
+            { role: "user" as MessageRole, content: prompt }
           ],
           temperature: 0.7, // Slightly creative but mostly factual
           max_tokens: 800, // Limit response size

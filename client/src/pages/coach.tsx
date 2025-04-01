@@ -5,10 +5,11 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SendIcon, BrainIcon, UserIcon, SparklesIcon, AlertTriangleIcon } from "lucide-react";
+import { SendIcon, BrainIcon, UserIcon, SparklesIcon, AlertTriangleIcon, GamepadIcon } from "lucide-react";
 import { useCoach } from "@/context/CoachContext";
 import { usePlayer } from "@/context/PlayerContext";
 import { useMatch } from "@/context/MatchContext";
+import { useGame } from "@/context/GameContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
@@ -26,16 +27,32 @@ export default function CoachQA() {
   const coach = useCoach();
   const { players, teamPlayers } = usePlayer();
   const { currentMatch, upcomingMatches, recentMatches } = useMatch();
+  const { selectedGame } = useGame();
   const { toast } = useToast();
+  
+  // Update welcome message when game changes
+  const getWelcomeMessage = () => {
+    return `Welcome to AI Coach Q&A for **${selectedGame}**. I'm powered by GPT-4o and have full information about your team members, scouting prospects, and strategy data. Ask me anything about ${selectedGame} mechanics, strategy, or your team's performance!`;
+  };
   
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      text: "Welcome to AI Coach Q&A. I'm powered by GPT-4o and have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
+      text: getWelcomeMessage(),
       isUser: false,
       timestamp: new Date()
     }
   ]);
+  
+  // Update welcome message when game changes
+  useEffect(() => {
+    setMessages([{
+      id: "welcome",
+      text: getWelcomeMessage(),
+      isUser: false,
+      timestamp: new Date()
+    }]);
+  }, [selectedGame]);
   
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -102,7 +119,8 @@ ${matchContext}
         method: 'POST',
         body: JSON.stringify({
           message,
-          context: contextData
+          context: contextData,
+          gameTitle: selectedGame // Send the selected game for context
         })
       });
       
@@ -251,22 +269,28 @@ ${matchContext}
         <main className="relative flex-1 overflow-y-auto focus:outline-none">
           <div className="py-6">
             <PageHeader 
-              title="Coach Q&A"
+              title={`Coach Q&A - ${selectedGame}`}
               subtitle="Chat with your AI assistant coach for strategic insights"
               actions={
-                <Button 
-                  size="sm" 
-                  variant="secondary"
-                  onClick={() => setMessages([{
-                    id: "welcome",
-                    text: "Welcome to AI Coach Q&A. I'm powered by GPT-4o and have full information about your team members, scouting prospects, and strategy data. Ask me anything!",
-                    isUser: false,
-                    timestamp: new Date()
-                  }])}
-                >
-                  <BrainIcon className="mr-2 h-4 w-4" />
-                  Reset Chat
-                </Button>
+                <div className="flex space-x-2">
+                  <div className="mr-2 bg-surface/80 text-white text-sm px-3 py-1.5 rounded-md flex items-center">
+                    <GamepadIcon className="h-4 w-4 mr-1.5 text-accent" />
+                    {selectedGame}
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="secondary"
+                    onClick={() => setMessages([{
+                      id: "welcome",
+                      text: getWelcomeMessage(),
+                      isUser: false,
+                      timestamp: new Date()
+                    }])}
+                  >
+                    <BrainIcon className="mr-2 h-4 w-4" />
+                    Reset Chat
+                  </Button>
+                </div>
               }
             />
 
@@ -324,7 +348,7 @@ ${matchContext}
                     <Input
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Ask a question about your team or strategy..."
+                      placeholder={`Ask about ${selectedGame} strategy, mechanics, or your team...`}
                       className="flex-1 bg-white border-gray-700 focus:border-primary text-black"
                     />
                     <Button type="submit" disabled={!inputValue.trim() || isTyping}>
