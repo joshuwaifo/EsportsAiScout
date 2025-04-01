@@ -40,23 +40,29 @@ export default function Sidebar() {
 
   return (
     <div className="hidden lg:flex lg:flex-shrink-0">
-      <div className="flex flex-col w-64 border-r border-surface">
+      <div className="flex flex-col w-64 border-r border-surface overflow-visible">
         <div className="flex flex-col items-center justify-center h-20 px-4 pt-2 bg-surface">
           <span className="text-2xl font-bold text-white mb-1">AI<span className="text-[#39FF14]">League</span></span>
           <div className="text-xs font-semibold tracking-wider text-center text-[#39FF14] uppercase mb-2">
             ESports 2026 Olympics
           </div>
         </div>
-        <div className="flex flex-col flex-grow px-4 py-4 overflow-y-auto bg-darkBg">
-          <div className="mb-3">
+        <div className="flex flex-col flex-grow px-4 py-4 overflow-y-auto overflow-x-visible bg-darkBg">
+          <div className="mb-3 relative z-50">
             <Select value={selectedGame} onValueChange={(value) => setSelectedGame(value as any)}>
-              <SelectTrigger className="w-full text-sm bg-surface border-surface hover:border-primary">
+              <SelectTrigger className="w-full text-sm bg-surface border-surface hover:border-primary relative">
                 <div className="flex items-center">
                   <GamepadIcon className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Select game" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="bg-surface border-surface">
+              <SelectContent 
+                className="bg-surface border-surface"
+                position="popper"
+                align="start"
+                side="right"
+                sideOffset={5}
+              >
                 <SelectItem value="Street Fighter" className="text-white">Street Fighter</SelectItem>
                 <SelectItem value="League of Legends" className="text-white">League of Legends</SelectItem>
                 <SelectItem value="PUBG Mobile" className="text-white">PUBG Mobile</SelectItem>
