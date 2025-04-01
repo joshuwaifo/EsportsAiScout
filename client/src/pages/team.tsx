@@ -1,16 +1,48 @@
+
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { UsersIcon, PlusIcon } from "lucide-react";
+import { UsersIcon, PlusIcon, GamepadIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { teamMembers } from "@/data/mockData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TeamMemberProfile from "@/components/team/TeamMemberProfile";
+import { useGame } from "@/context/GameContext";
 
 export default function Team() {
+  const { selectedGame } = useGame();
+  
+  // Street Fighter specific team
+  const streetFighterTeam = [
+    {
+      id: 201,
+      name: "DragonPuncher",  // same name as top prospect for consistency
+      role: "Fighter",        // role could just be "Fighter" or "Player"
+      position: "Main",       // perhaps indicating main representative
+      stats: { 
+        kda: 0,               // KDA doesn't apply to SF, but include for type safety
+        winRate: 75 
+      },
+      avatarUrl: undefined    // matching the TeamMember type
+    },
+    {
+      id: 202,
+      name: "TurtleMaster",
+      role: "Fighter",
+      position: "Sparring Partner", // or "Secondary"
+      stats: { 
+        kda: 0,
+        winRate: 60 
+      },
+      avatarUrl: undefined
+    }
+  ];
+  
+  // Select team list based on game
+  const teamList = selectedGame === "Street Fighter" ? streetFighterTeam : teamMembers;
   return (
     <div className="flex h-screen overflow-hidden bg-darkBg text-white">
       <Sidebar />
@@ -65,8 +97,8 @@ export default function Team() {
         <main className="relative flex-1 overflow-y-auto focus:outline-none pb-16 lg:pb-0">
           <div className="py-6">
             <PageHeader 
-              title="Team Management"
-              subtitle="Manage your esports team roster and performance"
+              title="My Team"
+              subtitle={`– ${selectedGame} Roster`}
               actions={
                 <>
                   <Button variant="secondary" size="sm" className="mr-2">
@@ -124,7 +156,7 @@ export default function Team() {
                 
                 <TabsContent value="roster">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {teamMembers.map((member, index) => (
+                    {teamList.map((member, index) => (
                       <Card key={index} className="bg-surface border-none overflow-hidden hover:shadow-lg transition-shadow duration-300">
                         <div className="h-24 bg-gradient-to-r from-primary to-blue-600 relative">
                           <div className="absolute -bottom-8 left-4">
@@ -150,19 +182,21 @@ export default function Team() {
                             {member.position}
                           </p>
                           
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <div className="flex justify-between mb-1 text-xs">
-                                <span className="text-gray-400">KDA Ratio</span>
-                                <span className="font-semibold text-[#39FF14]">{member.stats.kda}</span>
+                          <div className={`grid ${selectedGame === "League of Legends" ? "grid-cols-2" : "grid-cols-1"} gap-4 mb-4`}>
+                            {selectedGame === "League of Legends" && (
+                              <div>
+                                <div className="flex justify-between mb-1 text-xs">
+                                  <span className="text-gray-400">KDA Ratio</span>
+                                  <span className="font-semibold text-[#39FF14]">{member.stats.kda}</span>
+                                </div>
+                                <div className="w-full h-2 rounded-full bg-darkBg">
+                                  <div 
+                                    className="h-2 rounded-full bg-[#39FF14]" 
+                                    style={{ width: `${Math.min(member.stats.kda * 10, 100)}%` }}
+                                  ></div>
+                                </div>
                               </div>
-                              <div className="w-full h-2 rounded-full bg-darkBg">
-                                <div 
-                                  className="h-2 rounded-full bg-[#39FF14]" 
-                                  style={{ width: `${Math.min(member.stats.kda * 10, 100)}%` }}
-                                ></div>
-                              </div>
-                            </div>
+                            )}
                             <div>
                               <div className="flex justify-between mb-1 text-xs">
                                 <span className="text-gray-400">Win Rate</span>

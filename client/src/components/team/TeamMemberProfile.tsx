@@ -30,6 +30,7 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useGame } from "@/context/GameContext";
 
 interface TeamMember {
   id: number;
@@ -50,6 +51,7 @@ interface TeamMemberProfileProps {
 
 export default function TeamMemberProfile({ member }: TeamMemberProfileProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { selectedGame } = useGame();
   
   // Generate performance metrics based on KDA and win rate
   const generatePerformanceMetrics = (member: TeamMember) => {
@@ -178,14 +180,16 @@ export default function TeamMemberProfile({ member }: TeamMemberProfileProps) {
               <div className="bg-darkBg rounded-lg p-5">
                 <h3 className="text-lg font-semibold mb-4 text-white">Performance Statistics</h3>
                 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-darkBg bg-opacity-50 p-3 rounded-md">
-                    <div className="flex items-center mb-1">
-                      <BarChart2Icon className="h-4 w-4 mr-2 text-blue-500" />
-                      <span className="text-sm text-gray-400">KDA Ratio</span>
+                <div className={`grid ${selectedGame === "League of Legends" ? "grid-cols-2" : "grid-cols-1"} gap-4 mb-4`}>
+                  {selectedGame === "League of Legends" && (
+                    <div className="bg-darkBg bg-opacity-50 p-3 rounded-md">
+                      <div className="flex items-center mb-1">
+                        <BarChart2Icon className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="text-sm text-gray-400">KDA Ratio</span>
+                      </div>
+                      <p className="text-xl font-bold text-white">{member.stats.kda}</p>
                     </div>
-                    <p className="text-xl font-bold text-white">{member.stats.kda}</p>
-                  </div>
+                  )}
                   
                   <div className="bg-darkBg bg-opacity-50 p-3 rounded-md">
                     <div className="flex items-center mb-1">
