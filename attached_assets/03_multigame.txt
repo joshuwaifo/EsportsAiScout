@@ -1,0 +1,78 @@
+Prompt 3: Refactor Scouting Page for Each Game
+Feature: Make the Scouting page adapt to the selected game, listing players/talents relevant to that title. We’ll ensure that for Street Fighter, it shows Street Fighter players with appropriate details (e.g. main character, playstyle), while for other games it shows the existing data or placeholders. Instructions:
+Access Context in Scouting: Open client/src/pages/scouting.tsx. Import useContext and the GameContext (or useGame hook). Inside the component, get the current game via const { selectedGame } = useContext(GameContext).
+Prepare Player Data by Game: We need different player lists for different games. We will reuse or extend the mock data:
+If not already done, define a list of Street Fighter player prospects. For example, create an array streetFighterPlayers (either locally here or add it to mockData.ts and import it). Each player should match the Player type shape. For Street Fighter, we won’t have roles like “Mid Lane”; instead, we can use those fields to indicate the player’s main character and style. For instance:
+jsx
+Copy
+const streetFighterPlayers = [
+  {
+    id: 1,
+    name: "DragonPuncher",
+    role: "Main: Ryu",       // Using role to denote main character
+    position: "Aggressive",  // Using position to denote playstyle (e.g., Aggressive/Rushdown)
+    matchPercentage: 95,
+    skills: [
+      { name: "Offense", value: 90 },
+      { name: "Defense", value: 80 },
+      { name: "Execution", value: 85 },
+      { name: "Adaptability", value: 75 }
+    ],
+    tournaments: 12,
+    rating: 4.7
+  },
+  {
+    id: 2,
+    name: "TurtleMaster",
+    role: "Main: Guile",
+    position: "Defensive",   // Playstyle is defensive
+    matchPercentage: 88,
+    skills: [
+      { name: "Offense", value: 70 },
+      { name: "Defense", value: 92 },
+      { name: "Execution", value: 80 },
+      { name: "Adaptability", value: 78 }
+    ],
+    tournaments: 8,
+    rating: 4.5
+  },
+  {
+    id: 3,
+    name: "ComboQueen",
+    role: "Main: Chun-Li",
+    position: "Technical",   // Playstyle focuses on technical execution
+    matchPercentage: 90,
+    skills: [
+      { name: "Offense", value: 85 },
+      { name: "Defense", value: 75 },
+      { name: "Execution", value: 93 },
+      { name: "Adaptability", value: 80 }
+    ],
+    tournaments: 15,
+    rating: 4.8
+  }
+];
+Each player has a name, a “Main” character, and a playstyle. We filled the skills array with Offense, Defense, Execution, Adaptability values to mimic strengths (out of 100). matchPercentage could represent how well they fit the user’s team or scouting criteria (we set high percentages since these are top prospects). The rest (tournaments, rating) are arbitrary but plausible.
+Ensure you import or have the default playerProspects for other games (which is likely the League of Legends prospects given in mockData.ts). This contains players with roles like Mid, Jungle, etc. We will use that for LoL. If playerProspects is already imported at the top, that’s our default list.
+Now choose the list based on selectedGame:
+jsx
+Copy
+const players = selectedGame === "Street Fighter" 
+  ? streetFighterPlayers 
+  : playerProspects;
+If you want to differentiate further, you could also set up placeholder arrays for other games (e.g., an empty or generic list for “PUBG Mobile”), but using the LoL playerProspects as a fallback for non-SF is fine for now.
+Use the Conditional Player List: Find where the Scouting page renders the list of players. It likely maps over playerProspects to output <PlayerCard> components. Replace that data source with our players array from above. For example:
+jsx
+Copy
+players.map((player, index) => (
+  <PlayerCard key={index} player={player} />
+))
+This way, if Street Fighter is selected, it will iterate over streetFighterPlayers; if not, it iterates the default list.
+Adjust Display if Needed: The PlayerCard component will display player info. We passed Street Fighter info via the role and position fields (using them for character and style). The card might show them as-is (which is fine: e.g., “Main: Ryu” might appear where “Mid Lane / Carry” normally would). No new component is needed, we’re just repurposing fields. If PlayerCard concatenates role and position, the result could be “Main: Ryu / Aggressive” – which actually reads well for Street Fighter context. This reuse keeps us from altering the component layout.
+Additionally, skills will be shown (perhaps as bars or just values). Our skills for SF are Offense, Defense, etc. which are relevant. For LoL, the default skills might be Mechanical Skill, Team Play, etc. This difference is acceptable since it’s contextual. Ensure the number of skills and structure match what PlayerCard expects (we used four entries similar to the original).
+Page Header: Similar to Dashboard, update the header to show context. For example, if the top of Scouting page has <PageHeader title="Scouting" ...>, give it a subtitle:
+jsx
+Copy
+<PageHeader title="Scouting" subtitle={`– ${selectedGame} Prospects`} />
+(Adjust formatting as needed, maybe “for Street Fighter” or simply the game name.)
+Result: The Scouting page will now list players appropriate to the chosen game. For Street Fighter, users see a list of individual fighters with their main characters and playstyles. Switching to League of Legends will show the original team roles and players. This contextual switch uses the same PlayerCard component but with data tailored to each game, demonstrating reuse of the UI for different content.

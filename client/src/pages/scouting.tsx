@@ -4,6 +4,8 @@ import PageHeader from "@/components/layout/PageHeader";
 import PlayerCard from "@/components/scouting/PlayerCard";
 import { playerProspects } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
+import { useGame } from "@/context/GameContext";
+import { GamepadIcon } from "lucide-react";
 import { 
   FilterIcon, 
   RefreshCwIcon, 
@@ -29,16 +31,132 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Scouting() {
+  const { selectedGame } = useGame();
   const [searchQuery, setSearchQuery] = useState("");
   const [role, setRole] = useState("all");
   const [game, setGame] = useState("all");
   const [playerName, setPlayerName] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisResult, setAnalysisResult] = useState<{
+    playerName: string;
+    strengths: string[];
+    weaknesses: string[];
+    recommendations: string[];
+    compatibilityScore: number;
+    recruitmentPriority: string;
+  } | null>(null);
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
   const [fileUploaded, setFileUploaded] = useState("");
   
-  const filteredPlayers = playerProspects.filter(player => {
+  // Street Fighter specific player data
+  const streetFighterPlayers = [
+    {
+      id: 1,
+      name: "DragonPuncher",
+      role: "Main: Ryu",       // Using role to denote main character
+      position: "Aggressive",  // Using position to denote playstyle
+      matchPercentage: 95,
+      skills: [
+        { name: "Offense", value: 90 },
+        { name: "Defense", value: 80 },
+        { name: "Execution", value: 85 },
+        { name: "Adaptability", value: 75 }
+      ],
+      tournaments: 12,
+      rating: 4.7,
+      stats: {
+        kda: 3.8,
+        winRate: 78,
+        gamesPlayed: 350
+      }
+    },
+    {
+      id: 2,
+      name: "TurtleMaster",
+      role: "Main: Guile",
+      position: "Defensive",   // Playstyle is defensive
+      matchPercentage: 88,
+      skills: [
+        { name: "Offense", value: 70 },
+        { name: "Defense", value: 92 },
+        { name: "Execution", value: 80 },
+        { name: "Adaptability", value: 78 }
+      ],
+      tournaments: 8,
+      rating: 4.5,
+      stats: {
+        kda: 3.5,
+        winRate: 72,
+        gamesPlayed: 280
+      }
+    },
+    {
+      id: 3,
+      name: "ComboQueen",
+      role: "Main: Chun-Li",
+      position: "Technical",   // Playstyle focuses on technical execution
+      matchPercentage: 90,
+      skills: [
+        { name: "Offense", value: 85 },
+        { name: "Defense", value: 75 },
+        { name: "Execution", value: 93 },
+        { name: "Adaptability", value: 80 }
+      ],
+      tournaments: 15,
+      rating: 4.8,
+      stats: {
+        kda: 4.1,
+        winRate: 82,
+        gamesPlayed: 420
+      }
+    },
+    {
+      id: 4,
+      name: "GrappleMaster",
+      role: "Main: Zangief",
+      position: "Grappler",   
+      matchPercentage: 85,
+      skills: [
+        { name: "Offense", value: 88 },
+        { name: "Defense", value: 70 },
+        { name: "Execution", value: 75 },
+        { name: "Adaptability", value: 82 }
+      ],
+      tournaments: 10,
+      rating: 4.4,
+      stats: {
+        kda: 3.2,
+        winRate: 68,
+        gamesPlayed: 320
+      }
+    },
+    {
+      id: 5,
+      name: "FlashKicker",
+      role: "Main: Cammy",
+      position: "Aggressive",   
+      matchPercentage: 92,
+      skills: [
+        { name: "Offense", value: 95 },
+        { name: "Defense", value: 65 },
+        { name: "Execution", value: 88 },
+        { name: "Adaptability", value: 72 }
+      ],
+      tournaments: 14,
+      rating: 4.6,
+      stats: {
+        kda: 3.9,
+        winRate: 76,
+        gamesPlayed: 380
+      }
+    }
+  ];
+  
+  // Choose player list based on selected game
+  const players = selectedGame === "Street Fighter" ? streetFighterPlayers : playerProspects;
+  
+  // Filter the appropriate player list based on search and role
+  const filteredPlayers = players.filter(player => {
     const matchesSearch = player.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = role === "all" || player.role.toLowerCase().includes(role.toLowerCase());
     return matchesSearch && matchesRole;
@@ -67,7 +185,7 @@ export default function Scouting() {
     recruitmentPriority: "High"
   };
 
-  const handlePlayerAnalyze = async (e) => {
+  const handlePlayerAnalyze = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!playerName) {
@@ -89,7 +207,7 @@ export default function Scouting() {
     }, 2000);
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setHasUploadedFile(true);
@@ -152,9 +270,13 @@ export default function Scouting() {
           <div className="py-6">
             <PageHeader 
               title="Player Scouting"
-              subtitle="Find and analyze top talent for your team"
+              subtitle={`${selectedGame} Prospects`}
               actions={
                 <>
+                  <div className="mr-3 bg-surface/80 text-white text-sm px-3 py-1.5 rounded-md flex items-center">
+                    <GamepadIcon className="h-4 w-4 mr-1.5 text-accent" />
+                    {selectedGame}
+                  </div>
                   <Button variant="secondary" size="sm" className="mr-2">
                     <RefreshCwIcon className="mr-2 h-4 w-4" />
                     Refresh Data
@@ -385,10 +507,27 @@ export default function Scouting() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Roles</SelectItem>
-                          <SelectItem value="mid">Mid Lane</SelectItem>
-                          <SelectItem value="top">Top Lane</SelectItem>
-                          <SelectItem value="support">Support</SelectItem>
-                          <SelectItem value="carry">Carry</SelectItem>
+                          {selectedGame === "Street Fighter" ? (
+                            <>
+                              <SelectItem value="ryu">Ryu</SelectItem>
+                              <SelectItem value="guile">Guile</SelectItem>
+                              <SelectItem value="chun-li">Chun-Li</SelectItem>
+                              <SelectItem value="zangief">Zangief</SelectItem>
+                              <SelectItem value="cammy">Cammy</SelectItem>
+                              <SelectItem value="aggressive">Aggressive</SelectItem>
+                              <SelectItem value="defensive">Defensive</SelectItem>
+                              <SelectItem value="technical">Technical</SelectItem>
+                              <SelectItem value="grappler">Grappler</SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="mid">Mid Lane</SelectItem>
+                              <SelectItem value="top">Top Lane</SelectItem>
+                              <SelectItem value="support">Support</SelectItem>
+                              <SelectItem value="carry">Carry</SelectItem>
+                              <SelectItem value="jungle">Jungle</SelectItem>
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
