@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboardIcon, 
@@ -7,21 +8,27 @@ import {
   SettingsIcon,
   InfoIcon,
   MessageSquareIcon,
-  GamepadIcon
+  GamepadIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CheckIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGame } from "@/context/GameContext";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 export default function Sidebar() {
   const [location] = useLocation();
   const { selectedGame, setSelectedGame } = useGame();
+  const [isGameMenuOpen, setIsGameMenuOpen] = useState(false);
+
+  const games = [
+    "Street Fighter",
+    "League of Legends",
+    "PUBG Mobile",
+    "Tekken",
+    "King of Fighters"
+  ];
 
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
@@ -38,38 +45,62 @@ export default function Sidebar() {
     { teams: "Team Delta vs Team Alpha", result: "LOSS" },
   ];
 
+  const toggleGameMenu = () => {
+    setIsGameMenuOpen(!isGameMenuOpen);
+  };
+
+  const selectGame = (game: string) => {
+    setSelectedGame(game as any);
+    setIsGameMenuOpen(false);
+  };
+
   return (
     <div className="hidden lg:flex lg:flex-shrink-0">
-      <div className="flex flex-col w-64 border-r border-surface overflow-visible">
+      <div className="flex flex-col w-64 border-r border-surface">
         <div className="flex flex-col items-center justify-center h-20 px-4 pt-2 bg-surface">
           <span className="text-2xl font-bold text-white mb-1">AI<span className="text-[#39FF14]">League</span></span>
           <div className="text-xs font-semibold tracking-wider text-center text-[#39FF14] uppercase mb-2">
             ESports 2026 Olympics
           </div>
         </div>
-        <div className="flex flex-col flex-grow px-4 py-4 overflow-y-auto overflow-x-visible bg-darkBg">
-          <div className="mb-3 relative z-50">
-            <Select value={selectedGame} onValueChange={(value) => setSelectedGame(value as any)}>
-              <SelectTrigger className="w-full text-sm bg-surface border-surface hover:border-primary relative">
-                <div className="flex items-center">
-                  <GamepadIcon className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Select game" />
-                </div>
-              </SelectTrigger>
-              <SelectContent 
-                className="bg-surface border-surface"
-                position="popper"
-                align="start"
-                side="right"
-                sideOffset={5}
-              >
-                <SelectItem value="Street Fighter" className="text-white">Street Fighter</SelectItem>
-                <SelectItem value="League of Legends" className="text-white">League of Legends</SelectItem>
-                <SelectItem value="PUBG Mobile" className="text-white">PUBG Mobile</SelectItem>
-                <SelectItem value="Tekken" className="text-white">Tekken</SelectItem>
-                <SelectItem value="King of Fighters" className="text-white">King of Fighters</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="flex flex-col flex-grow px-4 py-4 overflow-y-auto bg-darkBg">
+          <div className="mb-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-between text-sm bg-surface border-surface hover:border-primary"
+              onClick={toggleGameMenu}
+            >
+              <div className="flex items-center">
+                <GamepadIcon className="mr-2 h-4 w-4" />
+                <span>{selectedGame}</span>
+              </div>
+              {isGameMenuOpen ? (
+                <ChevronUpIcon className="h-4 w-4" />
+              ) : (
+                <ChevronDownIcon className="h-4 w-4" />
+              )}
+            </Button>
+            
+            {isGameMenuOpen && (
+              <div className="mt-1 bg-surface rounded-md border border-gray-700 shadow-lg">
+                {games.map((game) => (
+                  <button
+                    key={game}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3 py-2 text-sm text-white hover:bg-surface/80",
+                      selectedGame === game && "bg-surface/80"
+                    )}
+                    onClick={() => selectGame(game)}
+                  >
+                    {game}
+                    {selectedGame === game && (
+                      <CheckIcon className="h-4 w-4 text-[#39FF14]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <nav className="flex-1 space-y-2">
             {navigationItems.map((item) => {
