@@ -1,0 +1,53 @@
+Prompt 5: Update “My Team” Page for Game-Specific Roster
+Feature: Refactor the “My Team” page to reflect the team or roster appropriate to the selected game. In a team-based game like LoL, this page shows a roster of team members and their stats. For Street Fighter (a 1v1 game), the “team” might be just a single player (or a small squad for training). We’ll ensure the page adapts by showing relevant players and hiding irrelevant stats. Instructions:
+Access Selected Game in Team Page: Open client/src/pages/team.tsx. Import useContext from React and GameContext from our context file. Inside the Team component, get selectedGame via useContext(GameContext).
+Prepare Team Data for Street Fighter: The mock data’s teamMembers array (imported from mockData.ts) is tailored to a 5-player MOBA team (roles like Top, Jungle, etc., each with stats like KDA). We need a simpler roster for Street Fighter. Define a new array, e.g. streetFighterTeam, with 1-2 members representing your Street Fighter squad:
+jsx
+Copy
+const streetFighterTeam = [
+  {
+    id: 201,
+    name: "DragonPuncher",  // same name as top prospect for consistency
+    role: "Fighter",        // role could just be "Fighter" or "Player"
+    position: "Main",       // perhaps indicating main representative
+    stats: { winRate: 75 }
+  },
+  {
+    id: 202,
+    name: "TurtleMaster",
+    role: "Fighter",
+    position: "Sparring Partner", // or "Secondary"
+    stats: { winRate: 60 }
+  }
+];
+We include two members: the main player and a training partner. We use a winRate stat for each (percentage). We omit complex stats like KDA since they don’t apply; we only keep winRate in the stats object (the TeamMember type likely allows additional stats, but we’ll use what’s relevant).
+If the TeamMember type requires KDA (from the LoL data structure), you can include kda: 0 just as a placeholder to satisfy the shape, but we won’t display it for SF.
+Select Team List by Game: Determine which team list to use:
+jsx
+Copy
+const teamList = selectedGame === "Street Fighter" ? streetFighterTeam : teamMembers;
+Here, teamMembers is the default import for other games (LoL team). If you want, you can also set up a placeholder for PUBG Mobile (e.g., 4 generic players) and extend this conditional to handle it, but it’s acceptable to reuse the LoL teamMembers for any non-SF for now.
+Render Team Members: The Team page likely uses a component like <TeamMemberProfile> or a list to display each member’s info. Find where it iterates or lists teamMembers. Replace that to use our teamList. For example:
+jsx
+Copy
+teamList.map(member => (
+  <TeamMemberProfile key={member.id} member={member} />
+))
+This will feed the Street Fighter team members into the existing profile component when SF is selected, and the default team otherwise.
+Adjust Display for Stats: The TeamMemberProfile component is designed for team games and might display stats like KDA, etc. We should ensure it doesn’t show irrelevant stats for Street Fighter:
+If feasible, update TeamMemberProfile to be aware of the game context. You can use useContext(GameContext) inside that component as well (import the context at the top of TeamMemberProfile.tsx). Then, conditionally render certain stats. For example, if it currently renders something like “KDA: X”, wrap that element in {selectedGame === "League of Legends" && (...)} so it only shows for LoL. Similarly, if we want to show a stat for SF, like win rate, ensure that is always shown or specifically shown for SF. The default data already has winRate, which is applicable to any game.
+If modifying the component is too much, an alternative: simply accept that KDA might be 0 or meaningless for SF players and leave it (perhaps it will show “KDA: 0” which isn’t ideal but is a minor issue). The cleaner approach is the conditional: e.g., in TeamMemberProfile.tsx find where it uses member.stats.kda or labels “KDA” and add a check for game. Also, you might add a label for winRate if not present (“Win Rate: 75%”). The Street Fighter members’ stats only have winRate in our data, which should already be displayed because LoL profiles likely showed winRate as well. If the profile shows both KDA and winRate for LoL, it will do so for SF; we just make KDA conditional.
+For brevity, you can implement:
+jsx
+Copy
+{selectedGame === "League of Legends" && (
+  <p>KDA: {member.stats.kda?.toFixed(1)}</p>
+)}
+<p>Win Rate: {member.stats.winRate}%</p>
+in the profile component’s JSX where stats are shown. This ensures only win rate shows for SF.
+Page Header: Update the header of the Team page to reflect game context. For example:
+jsx
+Copy
+<PageHeader title="My Team" subtitle={`– ${selectedGame} Roster`} />
+If Street Fighter is selected, it might show “My Team – Street Fighter Roster” (although SF isn’t a team game, we use the term loosely for the squad of players).
+Result: The My Team page will now display your Street Fighter roster when that game is selected, e.g., showing “DragonPuncher” and others as team members, with their win rates (and omitting any MOBA-specific stats). For League of Legends, it will show the full 5-player team with KDA, etc. This contextual adaptation prevents confusion (like seeing empty roles or meaningless stats) and prepares the app to handle different team structures per game.

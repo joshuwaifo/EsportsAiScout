@@ -3,6 +3,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { useGame } from "@/context/GameContext";
+import { GamepadIcon } from "lucide-react";
 import { 
   BrainIcon, 
   ZapIcon, 
@@ -26,6 +28,7 @@ import { teamAttributes, draftRecommendations } from "@/data/mockData";
 import { Progress } from "@/components/ui/progress";
 
 export default function Strategy() {
+  const { selectedGame } = useGame();
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [isGeneratingTeamStrategy, setIsGeneratingTeamStrategy] = useState(false);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
@@ -139,9 +142,13 @@ export default function Strategy() {
           <div className="py-6">
             <PageHeader 
               title="Strategy Center"
-              subtitle="AI-powered game planning and opponent analysis"
+              subtitle={`${selectedGame} – Game Planning`}
               actions={
                 <>
+                  <div className="mr-3 bg-surface/80 text-white text-sm px-3 py-1.5 rounded-md flex items-center">
+                    <GamepadIcon className="h-4 w-4 mr-1.5 text-accent" />
+                    {selectedGame}
+                  </div>
                   <Button 
                     variant="secondary" 
                     size="sm" 
@@ -163,81 +170,147 @@ export default function Strategy() {
             />
 
             <div className="px-4 mx-auto mt-8 max-w-7xl sm:px-6 md:px-8">
-              {/* One Key Strategy */}
+              {/* Street Fighter Strategy Card */}
+              {selectedGame === "Street Fighter" && (
+                <Card className="mb-8 bg-surface border-none">
+                  <CardHeader>
+                    <CardTitle>Street Fighter Strategy Focus</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="mb-4">
+                      Match-up analysis and adaptation are key. Identify your opponent's patterns in Round 1 and adjust by Round 3. 
+                      Also, consider practicing counter-strategies against characters that have given you trouble in past tournaments.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                      <div className="p-4 bg-primary/10 rounded-md">
+                        <h4 className="font-semibold mb-2 text-primary">Character Matchups</h4>
+                        <p className="text-sm">Study frame data and optimal punishes for each character. Practice specific counters to popular moves.</p>
+                      </div>
+                      <div className="p-4 bg-primary/10 rounded-md">
+                        <h4 className="font-semibold mb-2 text-primary">Spacing Control</h4>
+                        <p className="text-sm">Master the neutral game by controlling space. Know your character's optimal ranges and when to approach or retreat.</p>
+                      </div>
+                      <div className="p-4 bg-primary/10 rounded-md">
+                        <h4 className="font-semibold mb-2 text-primary">Mental Game</h4>
+                        <p className="text-sm">Observe patterns in your opponent's defense and offense. Mix up your approach to prevent being predictable.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* PUBG Mobile Placeholder */}
+              {selectedGame === "PUBG Mobile" && (
+                <Card className="mb-8 bg-surface border-none">
+                  <CardHeader>
+                    <CardTitle>PUBG Mobile Strategy</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="italic text-center py-4">Detailed strategy recommendations for PUBG Mobile coming soon...</p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Tekken Placeholder */}
+              {selectedGame === "Tekken" && (
+                <Card className="mb-8 bg-surface border-none">
+                  <CardHeader>
+                    <CardTitle>Tekken Strategy</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="italic text-center py-4">Detailed strategy recommendations for Tekken coming soon...</p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* King of Fighters Placeholder */}
+              {selectedGame === "King of Fighters" && (
+                <Card className="mb-8 bg-surface border-none">
+                  <CardHeader>
+                    <CardTitle>King of Fighters Strategy</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="italic text-center py-4">Detailed strategy recommendations for King of Fighters coming soon...</p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* One Key Strategy - Show for all games */}
               <OneKeyStrategy teamAttributes={teamAttributes} />
               
-              {/* Strategy Tabs */}
-              <Tabs defaultValue="upcoming">
-                <TabsList className="mb-6 bg-surface">
-                  <TabsTrigger value="upcoming">Upcoming Matches</TabsTrigger>
-                  <TabsTrigger value="analysis">Team Analysis</TabsTrigger>
-                  <TabsTrigger value="history">Historical Data</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="upcoming">
-                  {/* Opponent Analysis */}
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-6">
-                    {opponentTeams.map((team, index) => (
-                      <Card key={index} className="bg-surface border-none hover:shadow-lg transition-shadow duration-300">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="flex justify-between items-center">
-                            <span>{team.name}</span>
-                            <span className="text-sm px-2 py-1 bg-primary bg-opacity-20 rounded-full text-primary">
-                              {team.matchDate}
-                            </span>
-                          </CardTitle>
+              {/* League of Legends Content - Only show for LoL */}
+              {selectedGame === "League of Legends" && (
+                <Tabs defaultValue="upcoming">
+                  <TabsList className="mb-6 bg-surface">
+                    <TabsTrigger value="upcoming">Upcoming Matches</TabsTrigger>
+                    <TabsTrigger value="analysis">Team Analysis</TabsTrigger>
+                    <TabsTrigger value="history">Historical Data</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upcoming">
+                    {/* Opponent Analysis */}
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-6">
+                      {opponentTeams.map((team, index) => (
+                        <Card key={index} className="bg-surface border-none hover:shadow-lg transition-shadow duration-300">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="flex justify-between items-center">
+                              <span>{team.name}</span>
+                              <span className="text-sm px-2 py-1 bg-primary bg-opacity-20 rounded-full text-primary">
+                                {team.matchDate}
+                              </span>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="mb-4">
+                              <div className="flex justify-between text-sm mb-1">
+                                <span className="text-gray-400">Strategy Match</span>
+                                <span className="font-semibold text-[#39FF14]">{team.similarity}%</span>
+                              </div>
+                              <Progress value={team.similarity} className="h-2" />
+                            </div>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              className="w-full"
+                              onClick={() => handleGenerateTeamStrategy(team.name)}
+                            >
+                              <BrainIcon className="mr-2 h-4 w-4" />
+                              Generate Strategy
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Current Strategy */}
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      <Card className="bg-surface border-none">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                          <CardTitle>Team Zenith Analysis</CardTitle>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={handleExportData}
+                          >
+                            <DatabaseIcon className="mr-2 h-4 w-4" />
+                            Export Data
+                          </Button>
                         </CardHeader>
                         <CardContent>
-                          <div className="mb-4">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-gray-400">Strategy Match</span>
-                              <span className="font-semibold text-[#39FF14]">{team.similarity}%</span>
-                            </div>
-                            <Progress value={team.similarity} className="h-2" />
-                          </div>
-                          <Button 
-                            variant="default" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => handleGenerateTeamStrategy(team.name)}
-                          >
-                            <BrainIcon className="mr-2 h-4 w-4" />
-                            Generate Strategy
-                          </Button>
+                          <TeamRadarChart attributes={teamAttributes} />
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
 
-                  {/* Current Strategy */}
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <Card className="bg-surface border-none">
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Team Zenith Analysis</CardTitle>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={handleExportData}
-                        >
-                          <DatabaseIcon className="mr-2 h-4 w-4" />
-                          Export Data
-                        </Button>
-                      </CardHeader>
-                      <CardContent>
-                        <TeamRadarChart attributes={teamAttributes} />
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-surface border-none">
-                      <CardHeader>
-                        <CardTitle>Recommended Strategy</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <StrategyRecommendation draftPicks={draftRecommendations} />
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
+                      <Card className="bg-surface border-none">
+                        <CardHeader>
+                          <CardTitle>Recommended Draft</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <StrategyRecommendation draftPicks={draftRecommendations} />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
                 
                 <TabsContent value="analysis">
                   <div className="text-center py-12">
@@ -275,6 +348,7 @@ export default function Strategy() {
                   </div>
                 </TabsContent>
               </Tabs>
+              )}
             </div>
           </div>
         </main>

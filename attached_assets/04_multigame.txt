@@ -1,0 +1,38 @@
+Prompt 4: Adapt Strategy Page to Game Context
+Feature: Refactor the Strategy page to update its content based on the selected game. The Strategy page likely provides strategy recommendations or planning tools (for example, draft pick suggestions for team games, or training tips). We need to ensure that Street Fighter displays relevant strategy info, and that other games either use their own or show a placeholder. Instructions:
+Use Selected Game in Strategy Page: Open client/src/pages/strategy.tsx. Import useContext and GameContext, and get selectedGame via useContext(GameContext) inside the component.
+Adjust Content Conditional: The Strategy page might currently list recommended draft picks (draftRecommendations) and possibly allow generating strategies (there’s a StrategyGenerationDialog). These features are relevant for games like League of Legends (draft phase), but not for Street Fighter. We will structure the page to show different content:
+For League of Legends: Keep the existing content. Likely, it shows something like a list of draft suggestions (the imported draftRecommendations array with champion names) and perhaps some analysis. We will leave this intact when selectedGame === "League of Legends".
+For Street Fighter: Replace or hide draft-related elements. Instead, provide a high-level strategy insight or tip relevant to a 1v1 fighting game. For example, you can display a card or message about adapting to opponents or character matchup advice.
+Create a small JSX snippet for Street Fighter strategy. For example:
+jsx
+Copy
+{selectedGame === "Street Fighter" && (
+  <Card className="mb-4">
+    <CardHeader>
+      <CardTitle>Street Fighter Strategy Focus</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p>Match-up analysis and adaptation are key. Identify your opponent’s patterns in Round 1 and adjust by Round 3. Also, consider practicing counter-strategies against characters that have given you trouble in past tournaments.</p>
+    </CardContent>
+  </Card>
+)}
+This uses the existing Card UI component to show a tip: it emphasizes adaptation and matchup knowledge, which are crucial in Street Fighter (as opposed to draft strategy). The text is static for now – a placeholder indicating what kind of strategic advice might be shown.
+If there are any interactive features (like a “Generate Strategy” button), you can leave them but perhaps disable or hide for SF if they rely on draft data. For now, simply not showing draft picks serves the purpose.
+For PUBG Mobile or other games: Since we don’t have specific strategy content yet, we can show a placeholder message. For example, for any game that isn’t LoL or SF, render a simple note like:
+jsx
+Copy
+{selectedGame === "PUBG Mobile" && (
+  <p className="italic text-center py-4">Strategy recommendations for PUBG Mobile coming soon...</p>
+)}
+You could generalize this to any non-implemented game if needed. The key is to provide some feedback rather than showing LoL-specific info.
+Conditional Rendering: Implement the conditional rendering logic described above in the JSX:
+Wrap the LoL-specific sections (like any draft pick lists, or references to draftRecommendations and related UI) with a condition selectedGame === "League of Legends". For example, if there’s a segment listing draft picks, put it inside {selectedGame === "League of Legends" && ( ... )}. This ensures that section only shows for LoL.
+Insert the Street Fighter card/section under a condition selectedGame === "Street Fighter". Use the example card content above or similar text drawn from Street Fighter strategy insights (e.g., mention adaptation, counter-picking if relevant, or combo training focus). Keep it concise and within existing layout classes.
+Similarly, handle other games. You can explicitly check for "PUBG Mobile" as shown, or use a generic fallback. For now, explicit is fine.
+Page Header: Update the header to reflect the game context. e.g.,
+jsx
+Copy
+<PageHeader title="Strategy" subtitle={`– ${selectedGame}`} />
+This will show “Strategy – Street Fighter” or “Strategy – League of Legends” at the top.
+Result: Now the Strategy page will dynamically change: selecting League of Legends reveals the original strategy tools (e.g., draft picks list, etc.), while selecting Street Fighter shows a relevant strategy tip (and hides unrelated features). For PUBG or others, a placeholder note is displayed. This ensures users aren’t confused by seeing, say, champion draft suggestions while a non-MOBA game is selected, and it lays the groundwork for adding specific strategy content for each title in the future
