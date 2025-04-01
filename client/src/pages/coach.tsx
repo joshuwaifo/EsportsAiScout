@@ -149,14 +149,37 @@ ${matchContext}
         const player = coach.getPlayerByName(playerName);
         
         if (player) {
+          // Game-specific player info response
+          const gameSpecificIntro = selectedGame === "Street Fighter" 
+            ? `As a Street Fighter coach, I can tell you that ${playerName} `
+            : selectedGame === "League of Legends"
+            ? `From a League of Legends coaching perspective, ${playerName} `
+            : selectedGame === "PUBG Mobile"
+            ? `In PUBG Mobile analysis, ${playerName} `
+            : selectedGame === "Tekken"
+            ? `From a Tekken competitive standpoint, ${playerName} `
+            : selectedGame === "King of Fighters"
+            ? `As a KOF analyst, I'd say ${playerName} `
+            : `${playerName} `;
+          
           if (q.includes("stats") || q.includes("performance")) {
             const stats = 'stats' in player ? player.stats : null;
             if (stats) {
-              return `${playerName}'s current statistics show a KDA of ${stats.kda} and a win rate of ${stats.winRate}%. ${
-                stats.winRate > 65 ? `This is an impressive win rate that puts them in the top tier of players in their role.` :
-                stats.winRate > 55 ? `This is a solid win rate that indicates good consistency.` :
-                `This win rate shows room for improvement with focused practice.`
-              }`;
+              // Game-specific stats response
+              if (selectedGame === "Street Fighter" || selectedGame === "Tekken" || selectedGame === "King of Fighters") {
+                return `${gameSpecificIntro}has a win rate of ${stats.winRate}% in tournament play. ${
+                  stats.winRate > 65 ? `This is impressive and puts them in the top tier of ${selectedGame} competitors.` :
+                  stats.winRate > 55 ? `This is a solid win rate that shows good matchup knowledge and execution.` :
+                  `This win rate shows room for improvement with more matchup practice and combo training.`
+                }`;
+              } else {
+                // For team-based games like LoL or PUBG
+                return `${gameSpecificIntro}has a KDA of ${stats.kda} and a win rate of ${stats.winRate}%. ${
+                  stats.winRate > 65 ? `This is an impressive win rate in ${selectedGame} competitive play.` :
+                  stats.winRate > 55 ? `This is a solid win rate that indicates good team coordination.` :
+                  `This win rate shows room for improvement with better ${selectedGame === "League of Legends" ? "lane control and objective focus" : "positioning and map rotations"}.`
+                }`;
+              }
             }
           }
           
@@ -166,34 +189,84 @@ ${matchContext}
               const strongest = sortedSkills[0];
               const weakest = sortedSkills[sortedSkills.length - 1];
               
-              return `${playerName}'s analysis shows their greatest strength is ${strongest.name} at ${strongest.value}%, while their area for improvement is ${weakest.name} at ${weakest.value}%. ${
-                strongest.value > 90 ? `Their ${strongest.name} is exceptional and should be leveraged in team strategy.` :
-                `Focused training on ${weakest.name} could significantly improve their overall performance.`
-              }`;
+              // Game-specific skills response
+              return `${gameSpecificIntro}excels at ${strongest.name} (${strongest.value}%), ${
+                selectedGame === "Street Fighter" ? "which is crucial for winning neutral and creating pressure in matches" :
+                selectedGame === "League of Legends" ? "which significantly impacts their team's success in fights and objectives" :
+                selectedGame === "PUBG Mobile" ? "which gives them an edge in positioning and late-game scenarios" :
+                selectedGame === "Tekken" ? "giving them an advantage in critical match situations" :
+                selectedGame === "King of Fighters" ? "which is essential for high-level KOF play" :
+                "which contributes greatly to their success"
+              }. They could improve their ${weakest.name} (${weakest.value}%), ${
+                selectedGame === "Street Fighter" ? "which would help with defense and anti-airs" :
+                selectedGame === "League of Legends" ? "which would enhance their early game presence" :
+                selectedGame === "PUBG Mobile" ? "which would help in early engagements" :
+                selectedGame === "Tekken" ? "which would make their defense more consistent" :
+                selectedGame === "King of Fighters" ? "which would help against aggressive opponents" :
+                "which would round out their skill set"
+              }.`;
             }
           }
           
-          // General player info
-          return `${playerName} is a ${player.position} player in the ${player.role} role. ${
-            'stats' in player ? `They have a KDA of ${player.stats.kda} and a win rate of ${player.stats.winRate}%.` : ''
+          // General player info with game context
+          return `${gameSpecificIntro}is a ${player.position} player in the ${player.role} role. ${
+            'stats' in player ? `They have a ${
+              selectedGame === "League of Legends" ? `KDA of ${player.stats.kda} and a ` : ""
+            }win rate of ${player.stats.winRate}%.` : ''
           } ${
-            'tournaments' in player ? `They have participated in ${player.tournaments} tournaments and have a rating of ${player.rating}.` : ''
+            'tournaments' in player ? `They have participated in ${player.tournaments} ${selectedGame} tournaments and have a rating of ${player.rating}.` : ''
           }`;
         }
       }
     }
     
-    // Strategy and other topics
+    // Strategy and other topics - game-specific
     if (q.includes("strategy") || q.includes("tactics")) {
-      return coach.getTeamWeakness();
+      const gameSpecificStrategy = selectedGame === "Street Fighter" 
+        ? "For Street Fighter, focus on mastering anti-airs, frame traps, and matchup knowledge. Analyze your opponent's habits and adapt your spacing accordingly."
+        : selectedGame === "League of Legends"
+        ? "In League of Legends, prioritize vision control, objective timing, and team composition synergy. Early dragon control leads to higher win rates."
+        : selectedGame === "PUBG Mobile"
+        ? "For PUBG Mobile, emphasize positional awareness, circle rotation planning, and vehicle management. Always prioritize survival over early engagements."
+        : selectedGame === "Tekken"
+        ? "In Tekken, focus on movement mastery, punishment knowledge, and matchup-specific counters. Korean backdash consistency is key to high-level defense."
+        : selectedGame === "King of Fighters"
+        ? "For KOF, team order strategy and meter management across characters are crucial. Develop specific strategies for your point, middle, and anchor positions."
+        : "Develop strong fundamentals and consistent practice routines. Analyze your performance data to identify improvement areas.";
+        
+      return gameSpecificStrategy + " " + coach.getTeamWeakness();
     }
     
     if (q.includes("team") || q.includes("roster")) {
-      return coach.getTeamStrength();
+      const gameSpecificTeamAdvice = selectedGame === "Street Fighter" 
+        ? "A strong Street Fighter team needs a diverse range of character specialists to handle different matchups in tournament play."
+        : selectedGame === "League of Legends"
+        ? "An effective League of Legends roster balances lane strength, champion diversity, and clearly defined shotcalling roles."
+        : selectedGame === "PUBG Mobile"
+        ? "A well-rounded PUBG Mobile squad needs clearly defined roles for scouting, support, fragging, and in-game leadership."
+        : selectedGame === "Tekken"
+        ? "For Tekken team tournaments, having players who specialize in different character archetypes gives you strategic flexibility."
+        : selectedGame === "King of Fighters"
+        ? "In KOF competition, team construction with complementary character specialists is essential for tournament success."
+        : "A balanced team with diverse strengths can adapt to multiple opponents and scenarios.";
+        
+      return gameSpecificTeamAdvice + " " + coach.getTeamStrength();
     }
     
-    // Default fallback response
-    return "I'm temporarily using local analysis. For detailed insights on specific players, team strategy, or match recommendations, please try again when the advanced AI service is available.";
+    // Game-specific default fallback response
+    return `I'm temporarily using local analysis for ${selectedGame}. ${
+      selectedGame === "Street Fighter" 
+      ? "For detailed frame data, matchup analysis, or character-specific strategies,"
+      : selectedGame === "League of Legends"
+      ? "For in-depth champion matchups, team composition advice, or objective priority strategies,"
+      : selectedGame === "PUBG Mobile" 
+      ? "For detailed drop strategies, rotation tactics, or weapon loadout optimization,"
+      : selectedGame === "Tekken"
+      ? "For frame data analysis, combo optimization, or matchup-specific strategies,"
+      : selectedGame === "King of Fighters"
+      ? "For team composition advice, character synergy recommendations, or MAX mode strategies,"
+      : "For comprehensive game insights and specific strategic recommendations,"
+    } please try again when the advanced AI service is available.`;
   };
   
   const handleSubmit = async (e: React.FormEvent) => {

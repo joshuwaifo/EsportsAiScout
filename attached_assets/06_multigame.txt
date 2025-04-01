@@ -1,0 +1,48 @@
+Prompt 6: Make Coach Q&A Aware of Selected Game
+Feature: The Coach Q&A page is an AI chat where the user asks questions and gets coaching advice. We want to incorporate the selected game context so that the coach’s answers or prompts reflect the game (e.g., a Street Fighter coach vs. a LoL coach). We’ll modify the welcome message and the response generation to use the game context. Instructions:
+Access Selected Game in Coach Page: Open client/src/pages/coach.tsx (the Coach Q&A page). Import useContext and GameContext. Inside the component (likely called CoachQA), use const { selectedGame } = useContext(GameContext) to get the current game.
+Tailor the Welcome Message: Find the initial messages state, which contains the welcome message from the AI coach (e.g., “Welcome to AI Coach Q&A. Ask me anything about strategies...”). Update this message to mention the selected game, so users know the coach is context-specific. For example:
+jsx
+Copy
+const [messages, setMessages] = useState<Message[]>([
+  {
+    id: "welcome",
+    text: `Welcome to AI Coach Q&A for ${selectedGame}! Ask me anything about ${selectedGame} strategies, player performance, or upcoming matches.`,
+    isUser: false,
+    timestamp: new Date()
+  }
+]);
+Using a template string will insert the current game name. If the state is initialized only once, you might need to update it when selectedGame changes. Simpler: instead of hardcoding it in state, you could render a welcome message dynamically in the JSX based on selectedGame if the chat is empty. But adjusting the initial message is okay; just know if the user switches games mid-session, the welcome won’t automatically change (which is fine).
+Incorporate Game in AI Responses: The function generateAIResponse(userInput) is used to simulate or fetch the coach’s answer. We will modify it to use the selectedGame context, so the answers differ by game. If generateAIResponse is defined inside the component, it has access to selectedGame. Update it as follows:
+jsx
+Copy
+function generateAIResponse(question: string): string {
+  if (selectedGame === "Street Fighter") {
+    // Example simple rule-based response for Street Fighter
+    if (question.toLowerCase().includes("combo")) {
+      return "As a Street Fighter coach, I suggest practicing your combo execution in training mode. Focus on consistency and timing.";
+    }
+    return "Street Fighter Coach: Emphasize strong fundamentals like footsies and anti-airs. Always adapt to your opponent’s habits.";
+  } else if (selectedGame === "League of Legends") {
+    if (question.toLowerCase().includes("lane")) {
+      return "As a League of Legends coach, I'd advise improving your laning phase by focusing on creep score and trading patterns.";
+    }
+    return "League of Legends Coach: Coordinate with your team and maintain vision control – strategy and teamwork are key.";
+  } else if (selectedGame === "PUBG Mobile") {
+    return "PUBG Mobile Coach: Work on your map awareness and positioning. Survival and smart engagement wins games. (More detailed coaching coming soon.)";
+  } else {
+    return `Coach: I'm here to help with ${selectedGame} strategies. Let's focus on fundamentals and improve your game.`;
+  }
+}
+In this example, we added some simple keyword checks to tailor the response (for demonstration). The Street Fighter coach focuses on combos or general fighting fundamentals; the LoL coach talks about laning or general teamwork; PUBG gets a placeholder response. The default branch handles any other game similarly. These are static rules for now – in a real scenario, this could call an AI service with game-specific context. The key is that our implementation acknowledges the selected game and provides a relevant flavor in the answer.
+Update UI Elements (if needed): If the Coach page has any labels, placeholders, or button text, consider updating them to reflect the game. For example, if there’s a prompt like “Ask a question...”, you might change it to “Ask a question about ${selectedGame}...”. This can usually be done in the JSX where the input is defined (perhaps an <input placeholder="...">). E.g.:
+jsx
+Copy
+<input 
+  type="text" 
+  placeholder={`Ask a ${selectedGame} question...`} 
+  value={inputValue} 
+  onChange={...} 
+/>
+This way, the user is reminded which game context they are querying.
+Result: With these changes, the Coach Q&A feels game-aware. When the user selects Street Fighter, the welcome message might read “Welcome to AI Coach Q&A for Street Fighter” and the AI’s answers will reference fighting game concepts. If the user switches to League of Legends, new questions will yield responses mentioning teamwork, laning, etc. This contextual coaching adds to the authenticity of the app, showing that the “coach AI” knows which game it’s discussing.
