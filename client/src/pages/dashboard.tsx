@@ -8,6 +8,8 @@ import AIInsights from "@/components/dashboard/AIInsights";
 import TeamRadarChart from "@/components/dashboard/TeamRadarChart";
 import PlayerCard from "@/components/scouting/PlayerCard";
 import StrategyRecommendation from "@/components/strategy/StrategyRecommendation";
+import ReplayHighlightGenerator from "@/components/dashboard/ReplayHighlightGenerator";
+import FighterTerminologyGlossary from "@/components/dashboard/FighterTerminologyGlossary";
 import { 
   StrategyGenerationDialog, 
   exportTeamData 
@@ -319,18 +321,32 @@ export default function Dashboard() {
               {/* Main Analytics Sections */}
               <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-3">
                 {/* Game Performance Chart */}
-                <div className="lg:col-span-2">
+                <div className={`${selectedGame === "Street Fighter" ? "lg:col-span-3" : "lg:col-span-2"}`}>
                   <PerformanceChart timeRange={timeRange} onTimeRangeChange={setTimeRange} />
                 </div>
 
                 {/* AI Insights */}
-                <div>
+                <div className={selectedGame === "Street Fighter" ? "lg:col-span-2" : ""}>
                   <AIInsights 
                     insights={insightsData} 
                     onGenerateMore={generateMoreInsights} 
                   />
                 </div>
+                
+                {/* Street Fighter Specific Terminology Glossary */}
+                {selectedGame === "Street Fighter" && (
+                  <div className="lg:col-span-1">
+                    <FighterTerminologyGlossary />
+                  </div>
+                )}
               </div>
+              
+              {/* Street Fighter Match Replay Highlights */}
+              {selectedGame === "Street Fighter" && (
+                <div className="mt-8">
+                  <ReplayHighlightGenerator />
+                </div>
+              )}
 
               {/* Player Scouting Section */}
               <div className="mt-8">

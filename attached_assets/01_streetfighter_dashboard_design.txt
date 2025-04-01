@@ -1,0 +1,161 @@
+Perfect – I’ll now dive deep into how to design a joyful, technically sound, game-specific dashboard for Street Fighter 6, covering:
+- Real-time stats: win/loss, combo accuracy, reaction time, move usage.
+- Replay highlight generator: identifying turning points.
+- Title-specific terminology: like "anti-air punish," "frame trap," and more.
+
+I’ll optimize the design for the judging criteria in objectives.txt, focusing especially on visual joy and technical robustness. I’ll also provide sample data snippets and a Replit-ready prompt that swaps in this dashboard when Street Fighter is selected.
+
+# Street Fighter 6–Specific EsportsAiScout Dashboard Design
+
+To tailor **EsportsAiScout** for **Street Fighter 6 (SF6)**, we introduce game-specific features that deliver real-time insights and a joyful, Street Fighter–themed user experience. This SF6 dashboard module will plug into the existing React/TypeScript/Tailwind app and appear whenever **“Street Fighter” is selected** from the global game dropdown, replacing generic UI with SF6-specific components. The design emphasizes clarity (short text blocks, intuitive charts) and authenticity to SF6’s style. Below we detail the three key features:
+
+## 1. Real-Time Player Stats Section
+
+This section displays live performance metrics for a player during matches, updating in real-time (or near real-time) as data comes in. Key **metrics** include:
+
+- **Win/Loss Ratio** – The player’s match win rate (e.g. 3 wins out of 4 matches = 75%). This gives a quick sense of overall performance. It can be tracked per session or historically ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=In%20summary%2C%20,rates%2C%20move%20usage%20stats%2C%20etc)).
+- **Combo Accuracy** – Percentage of combos successfully executed out of those attempted. High-level players have strong execution and rarely “drop” combos ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,the%20player%20successfully%20perform%20these)). For example, if 10 combo opportunities arose and 8 were finished without dropping, combo accuracy = 80%.
+- **Reaction Time** – Average time to react to key situations, like anti-airing a jump or punishing a unsafe move. This can be measured in seconds/frames: e.g. how fast the player inputs a counter-attack after an opponent whiffs or is blocked. Analyzing frame data can determine if a punish was within the optimal window ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,frame%20data%20for%20all%20moves)) (indicating good reaction speed).
+- **Move Usage Frequency** – How often the player uses specific moves or actions. For instance, number of projectiles thrown, uppercuts (Dragon Punches) performed, throws, **Drive Impacts**, etc. This highlights the player’s style (e.g. heavy use of fireballs vs. close-up attacks). In one famous analysis, a player threw **464 Sonic Booms** over 12 matches ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,dashes%2C%20uses%20EX%20moves%2C%20etc)) – a stat that clearly shows a zoning-heavy strategy. Our dashboard might show a small list of the top moves used with counts.
+
+**Data Acquisition:** Obtaining these stats in real-time for SF6 can be challenging but feasible with the right approach. Capcom’s **Fighter ID / Capcom Fighters Network (CFN)** provides player profiles and match history, but **Capcom does not offer an open API** for detailed data ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,Street%20Fighter%206%20CFN%20scraper)). Instead, community-developed methods are used – for example, **web-scraping CFN pages** (fans have built scripts and unofficial APIs for SF5/SF6) ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=discussions%2C%20the%20only%20way%20to,Street%20Fighter%206%20CFN%20scraper)). The dashboard could periodically scrape or query such a service for updated stats during an event. Additionally, **tournament platforms** like Start.gg or Challonge often provide APIs for match results ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=For%20the%20EsportsAiScout%20tool%2C%20likely,public%20info%20might%20be%20needed)), which could feed basic stats (wins, character used, scores). For richer in-game stats (combo counts, move usage), a solution is to use **match replay files or telemetry**. SF6 allows players to save replays; if those files (or JSON exports) are accessible, the app can parse them to compute detailed stats. In a demo scenario, we can simulate a live feed by pre-recording match data and streaming it to the frontend. The key is that the frontend will receive an updating JSON of stats (via WebSocket or polling) and reflect changes immediately – giving the impression of “real-time” updates as the match progresses.
+
+**Sample Data Format:** We can define a structured JSON object to represent a player’s stats at any given moment. This makes it easy for the React frontend to consume. For example, a mock JSON for a SF6 player might look like:
+
+```json
+{
+  "playerId": "12345",
+  "playerName": "RyuMaster99",
+  "character": "Ryu",
+  "winLossRatio": 0.67,         // 67% win rate
+  "comboAccuracy": 0.75,       // 75% of combos completed successfully
+  "avgReactionTime": 0.28,     // 0.28 seconds on average to respond (e.g. ~17 frames)
+  "movesUsed": {
+    "Hadoken (Fireball)": 52,
+    "Shoryuken (DP)": 10,
+    "Throw": 8,
+    "Drive Impact": 5,
+    "Critical Art (Level 3)": 1
+  }
+}
+``` 
+
+This data could be updated after each round or in real-time as events occur. In a real implementation, the `movesUsed` might even be broken down by hit vs. whiff, etc., but the above keeps it simple. Replit’s environment can use such a JSON as mock data to drive the UI – for instance, stored in state or fetched from a local API route.
+
+**Visualization & UI:** Presenting these stats in a clear, engaging way is crucial. We propose using **stat cards and charts** to showcase the numbers ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=All%20these%20features%20would%20be,missed%20attack%20from%20max%20distance%E2%80%9D)):
+
+- Each metric can be shown in a **card** with an SF6-themed design. For example, a card for *Win Rate* with a bold percentage and maybe a small trophy icon (indicating wins) could be displayed. A *Reaction* card might use a stopwatch or lightning icon (for speed).
+- **Radial bar charts or gauges** are great for percentage metrics. A circular progress chart could represent combo success or win rate visually – e.g. a 75% combo accuracy could be a ring that is 75% filled, possibly with a Street Fighter style flourish (like an aura or energy effect around the circle).
+- **Animated counters** can make numeric stats feel alive. As moves are performed, the count could tick upward with a small animation. For instance, each time a Hadoken is thrown, the Hadoken count could increment with a tiny fireball icon animation next to it.
+- **Charts for distribution**: A small bar chart or radar chart could show move usage distribution. For example, a radar (web) chart might plot different move categories (normals, specials, throws, etc.) to illustrate a player’s style at a glance. This ties into SF6’s one-on-one nature – a radar chart with axes like “Offense vs Defense vs Adaptation vs Execution” could be used to profile the player (similar to how some games show player style) ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,as%20a%20habit%20to%20exploit)).
+- All these UI elements will adopt SF6’s visual theme: **dark background with neon accents and graffiti-style splashes** to match the game’s aesthetic. SF6 embraces **colorful paint effects** in its UI (splashes of paint appear on Drive Impacts and Punish Counters ([Street Fighter 6's Director and Producer discuss the influence of hip hop and graffiti on Capcom's fighting game series](https://www.eventhubs.com/news/2022/jul/09/sf6-influence-hip-hop-graffiti/#:~:text=Street%20Fighter%206%20is%20fully,embracing%20colored%20paint))), so our stat cards could have subtle paint-splash backgrounds or border accents. For instance, the win rate circle might have a brushstroke styling, or the combo accuracy card might have a combo counter graphic in SF font behind it.
+- We also ensure **readability** is paramount ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=All%20these%20features%20would%20be,missed%20attack%20from%20max%20distance%E2%80%9D)). Labels will be clear (“Combo Accuracy”, “Avg Reaction Time”), and if any term is game-specific (like “DP” for Dragon Punch), we’ll either spell it out or provide a tooltip (see Terminology Layer below). The layout should be clean: e.g., a grid of cards or a responsive flexbox that wraps on smaller screens (Tailwind can be used for this layout easily). 
+
+In summary, the Real-Time Stats section gives an **at-a-glance dashboard** of the player’s performance in SF6, using engaging visuals (gauges, counters) updated live. Technically, it can integrate with existing React components (perhaps extending a generic `StatCard` component in the codebase) and style them via Tailwind to match SF6. The data either comes from live sources (CFN scrape or event feed) or a simulated source in Replit for demonstration, but the interface is built to handle dynamic updates smoothly.
+
+## 2. Replay Highlight Generator
+
+After or during a match, the **Replay Highlight Generator** will automatically identify and display the most pivotal moments (“turning points”) of the fight. By analyzing the **match replay data** – essentially a timeline of events such as health changes, combos, knockdowns, and KO outcomes ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,one%20can%20compute%20derived%20stats)) – the system can pinpoint where the momentum shifted. Here’s how it can work and be presented:
+
+**Analyzing Match Data:** A Street Fighter match replay (whether from a saved replay file or a logged stream of events) contains a chronological list of actions: hits landed, damage dealt, meter usage, etc. ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,one%20can%20compute%20derived%20stats)). By scanning this timeline, our algorithm flags moments that meet certain criteria for “highlights”:
+
+- **Clutch Comebacks:** Situations where a player was **one hit from defeat and still won the round**. For example, if Player A’s health was below 10% vs Player B’s 50%, but Player A managed to win, that’s a comeback highlight. The system can detect this by looking at health values and round outcome. A “**clutch**” tag might be assigned if a round was won by a player who was in critical health at any point ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,a%20clutch%20pixel%20health%20comeback)) ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,Conversely%2C%20a)).
+- **Huge Combo or High Damage Sequence:** Any single combo that takes off a large percentage of health (say 40% or more) or a series of consecutive attacks that swings the health lead can be flagged. For instance, a **10-hit combo** that dramatically shifts momentum would be a highlight. The event log can be checked for damage spikes – e.g., a combo dealing 3000 damage (in SF6 terms) might cross a threshold to mark a “big combo” event.
+- **Momentum Shifts:** These are turning points where the advantage shifts from one player to another. The system can track life lead over time – if Player X was leading comfortably and within a few seconds Player Y reverses the situation (through a successful sequence of attacks or a critical move like a landed **Critical Art** super), that time segment is a highlight. In practice, we might calculate the health difference before and after an event; a swing of say >30% health in favor of the other player could qualify as a momentum shift.
+- **Critical Events:** Certain game-specific events inherently make great highlights – e.g., a perfectly timed **Drive Impact** that causes a wall splat, a **Perfect Parry** into a punish, a **Punish Counter** (which in SF6 is indicated with a dramatic paint splash effect ([Street Fighter 6's Director and Producer discuss the influence of hip hop and graffiti on Capcom's fighting game series](https://www.eventhubs.com/news/2022/jul/09/sf6-influence-hip-hop-graffiti/#:~:text=As%20an%20example%2C%20it%27s%20been,attacks))). If our replay log notes these events (some replays might tag Counter hits, etc.), we would flag them especially if they led to a big reward. Also, **“perfect” rounds** (where one player wins without taking any damage) or rounds that end with a **timeout** victory can be noted as special highlights.
+
+Each highlight moment can be represented as a small data object. Below is a **sample schema** for highlight events extracted from a replay:
+
+```json
+[
+  {
+    "timestamp": 55, 
+    "event": "Big Combo",
+    "player": "Player1",
+    "description": "10-hit combo for 45% damage",
+    "impact": "High"
+  },
+  {
+    "timestamp": 78, 
+    "event": "Comeback",
+    "player": "Player2",
+    "description": "Comeback victory at 5% health",
+    "impact": "High"
+  },
+  {
+    "timestamp": 40, 
+    "event": "Drive Impact Stun",
+    "player": "Player1",
+    "description": "Drive Impact wall-splat turning the round momentum",
+    "impact": "Medium"
+  }
+]
+```
+
+In this JSON array, `timestamp` could be the seconds into the match or a specific replay timestamp; `event` is a short tag; `player` indicates who was responsible or who benefited; `description` gives a human-readable summary; and `impact` is a qualitative level (we could also use a numeric score). The generator would produce a list like this after analyzing a match. In a live setting, it might even update between rounds or at round end to highlight that round’s key moment.
+
+**Visualization on Timeline/Heatmap:** We propose a **timeline widget** to display these highlights. For example, a horizontal bar representing the match (or each round) with markers along it:
+- Each marker corresponds to one highlight event and could use an icon or color coding for the type (e.g., a small explosion icon for a big combo, a heart icon for a comeback since it was a life-saving moment, a star for a critical move).
+- Users can hover over a marker to see a tooltip: e.g., “0:55 – Big Combo by Player1 (45% damage)”. This gives quick context. We could list the highlights chronologically in a sidebar as well, but a visual timeline makes it intuitive to see *when* during the match each moment happened.
+- If integrated with video (for a fully realized product, if we had the match video or replay, clicking the marker could jump to that moment in the video). On Replit, we might not have full video playback, but we could simulate it with an animated recreation or just use the timeline itself.
+
+To infuse the **Street Fighter flavor**, the highlight display can incorporate the series’ iconic visual and sound effects:
+- Use the **SF6 paint-splash effect** for dramatic moments. For example, when highlighting a *Punish Counter*, we could briefly animate a splash of color on the screen (mirroring how SF6 splashes paint when a punish counter occurs ([Street Fighter 6's Director and Producer discuss the influence of hip hop and graffiti on Capcom's fighting game series](https://www.eventhubs.com/news/2022/jul/09/sf6-influence-hip-hop-graffiti/#:~:text=Street%20Fighter%206%20is%20fully,embracing%20colored%20paint))). Similarly, a big combo highlight might flash the combo count number in a flashy font on the screen (“10 HIT!”) for a moment.
+- We can stylize the timeline itself with SF motifs – perhaps the timeline is not a plain line but has hash marks styled like the SF6 **Drive Gauge**. The markers could appear as small burst icons that resemble the in-game hit sparks or drive impact icon.
+- Animations: When a new highlight is triggered, an **arcade-like announcer effect** could play (text or audio). For instance, a “COUNTER!” voice clip or simply a text popup that slides in (“Clutch Comeback!”) with a retro 8-bit sparkle. Sound effects (used sparingly) like the KO sound or the “ping” that SF6 uses in its menus can add excitement to the UX.
+- The highlights could also be shown in a **heatmap overlay** on a health bar graphic – i.e., display the two players’ health bars and mark points on them where big damage occurred (this is an idea if we want a more graphical representation). But a simple timeline with tooltips is likely easier to implement with libraries (could use a lightweight chart or just CSS).
+
+From a technical standpoint, this feature can be built as a React component that takes the list of highlight events as props. We can use simple divs or a library like D3/Recharts to render the timeline. Tailwind can style the markers (e.g., make them rounded, on hover expand). The data for highlights might come from a backend module that processes the replay – for the prototype, we can have a function that ingests a mock log and produces the sample JSON above. On Replit, we focus on the front-end visualization, using fake data to demonstrate how it would work. The result is an engaging “highlight reel” experience, where even without watching the full match, a user (or a coach/judge) can see the key turning points **at a glance**.
+
+## 3. Terminology Layer (Glossary with Joyful Tooltips)
+
+Street Fighter (and fighting games in general) have a rich jargon. To make the dashboard welcoming to newcomers (e.g., a coach or viewer who might not know all the terms), we include a **Terminology Layer**: interactive explanations for SF6-specific concepts. This will consist of a small glossary of terms and on-demand definitions directly in the UI.
+
+**Key SF6 Terms and Concepts:** We will curate a list of important terms that appear in the stats and highlights. For example:
+
+- **Anti-air:** A move that knocks an jumping opponent out of the air. (E.g. using a Shoryuken uppercut to hit someone who jumps at you.) Anti-airs prevent opponents from easily jumping in. We track stats like *anti-air success rate* to gauge a player’s defense ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,as%20a%20habit%20to%20exploit)).
+- **Frame Trap:** A pressure technique where the attacker leaves just enough of a gap (in frames) to bait the defender into trying something, only to hit them first. In other words, a sequence that **traps** the opponent if they press a button at the wrong time, due to frame advantage. Common in high-level play to open up defensive opponents.
+- **Whiff Punish:** Attacking immediately after the opponent **whiffs** (misses) a move, hitting them during their recovery. Essentially, punishing the opponent’s missed attack ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,missed%20attack%20from%20max%20distance%E2%80%9D)). For example, if the opponent swings a heavy punch that misses, you step in and sweep them – that’s a whiff punish. (Our tool might say something like “Player2 scored 5 whiff punishes,” and we want users to know what that means.)
+- **Drive Impact:** A powerful armored attack unique to SF6’s **Drive System**. A Drive Impact (performed with heavy punch+kick together) absorbs up to 2 hits and can slam the opponent into the wall (wall splat) if it connects, often leading to a big combo. It’s a major mechanic in SF6’s meta (can be risky if predicted). We reference it in stats (e.g. how often a player uses Drive Impact, success rate, etc.).
+- **Perfect Parry:** A new SF6 mechanic where timing a parry **exactly** as you get hit results in a “perfect” parry – the screen freezes briefly and the opponent is left open. It completely nullifies the attack and lets you punish, but it’s hard to time. A stat like *perfect parry success* could be shown, and it’s a term worth explaining.
+
+These terms (and potentially others like *Punish Counter*, *Drive Rush*, *Burnout*) will be integrated into the UI. Wherever they appear – be it in labels, tooltips, or text – we will **highlight them for easy reference**. For instance, the first time “whiff punish” appears in a panel, it might be underlined or have a little “📘” info icon.
+
+**On-Hover Definitions:** When the user hovers over or clicks these highlighted terms, a tooltip or popover will display the definition in a friendly wa ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,missed%20attack%20from%20max%20distance%E2%80%9D))】. We can implement this using a library like Radix UI’s Tooltip/HoverCard (already in the codebase) or a custom React component. The tooltip will have the term, a brief definition, and perhaps even an example. 
+
+- *Example:* The text might show “Whiff Punish” as a different color. Hovering it could show a small card: **“Whiff Punish:** Counter-attacking an opponent *right after* they miss an attack. *Example:* Opponent whiffs a sweep, you sweep them back during their recovery.” This helps someone unfamiliar quickly get up to speed. 
+
+We’ll style these tooltips with **joyful, SF-themed touches** so it’s not like reading a dry glossary. Ideas for this include:
+  - Using **colorful backgrounds or borders** that match SF6’s vibrant style. For instance, a tooltip could have a semi-transparent black background with neon green text (SF6’s UI has a lot of neon graffiti elements) or a bright border. We can even give it a slight animated entrance, like it “pops” into view with a scaling effect, to feel more playful.
+  - Adding **character flavor/emotes**: We could include a tiny character graphic or emoji to reinforce the term. Imagine a tiny Ryu head icon next to “Anti-air” or a cartoonish foot icon for “whiff punish” (since you’re tripping someone’s miss). We might even present the tooltip as if a character is speaking it – e.g., a small speech bubble with **Dan Hibiki** (a goofy SF character) saying “A **whiff punish** is when you hit them because they *missed*!”. This is an optional flair, but it can make learning fun.
+  - **Sound FX:** We can play a short sound on certain interactions – for example, the **SF2 “bing” or SF6 menu click sound** when a tooltip appears. Or if you click a glossary icon, you hear the classic “Hadoken!” voice softly in the background for a term like Hadoken (just an idea to bring a smile – though we’d use sounds sparingly to avoid annoyance).
+  - **Arcade typography:** Use an arcade-like font or stylized text for the term inside the tooltip. We might mimic SF6’s own fonts or use a pixel font for nostalgia. For instance, the term title could appear in the Street Fighter font style (yellow/orange gradient with a black outline) for a real punchy look. Tailwind can incorporate custom fonts or we can use an SVG/image for the term text if needed.
+
+From a developer perspective, implementing the terminology layer means maintaining a dictionary of terms and definitions (could be a simple JSON or TS object). For example:
+
+```js
+const SF6_TERMS = {
+  "whiff punish": {
+     definition: "Punishing an opponent’s missed attack during their recovery.",
+     example: "E.g. Opponent misses a sweep, you sweep them back before they recover."
+  },
+  "drive impact": {
+     definition: "Armored smash attack (SF6) that absorbs hits and can wall-splat the foe.",
+     example: "E.g. Use Drive Impact to absorb a fireball and hit the opponent."
+  },
+  // ... etc.
+};
+```
+
+We can then create a React component that scans text for these terms or manually wrap terms in a `<Tooltip>` component. Using Tailwind, we ensure the tooltip has the desired styling (maybe a `bg-purple-800 text-white p-2 rounded shadow-md` plus some custom CSS for a graffiti border image if we want). The **UX** result is an interface that educates the user on-the-fly. If a judge reading our dashboard sees “anti-air accuracy 70%” and doesn’t know *anti-air*, they simply hover and see a friendly explanation. This makes the platform accessible without breaking the immersion for experienced users (who can ignore the tooltips if they don’t need them).
+
+## 4. Integration & Dynamic Swap
+
+All the above features are built to integrate seamlessly into the EsportsAiScout application. When the user selects **Street Fighter 6** from the global game dropdown, the dashboard will dynamically swap in this SF6-specific module. The navigation can remain consistent (using the existing layout and sidebar), but the content area will load our SF6 dashboard components instead of, say, a generic dashboard or one for another game. This could be achieved via a React route or conditional rendering based on the selected game state. The design ensures a **consistent overall look** with the app (same layout framework, fonts, etc.), but with distinct SF6 styling and data.
+
+In essence, we’re delivering a **fully tailored Street Fighter experience** inside the AI Scout platform. The real-time stats, highlights, and terminology helper all work together to show that the tool **“speaks Street Fighter”** – it knows the meaningful stats to track, it can call out the hype moments of an SF6 match, and it explains the fighting game lingo with charm. This specialized dashboard will not only provide valuable analytics (win rates, reaction times, etc.) but do so in a way that’s visually exciting (with SF6’s flashy vibe) and user-friendly (glossary and clear design). And when the user switches to a different game, the UI can similarly switch to that game’s module, keeping the experience cohesive across titles.
+
+Finally, by swapping in the SF6 dashboard dynamically on game selection, we ensure that **all these features are only present for Street Fighter 6**, avoiding confusion with other games. It showcases the flexibility of the EsportsAiScout platform: game-specific modules for deep, context-aware insights. When SF6 is active, the app essentially transforms into a Street Fighter analyst’s dream dashboard – and then back to a general or another game’s view when needed. This dynamic loading can be done efficiently in Replit with React (lazy-loading the SF6 components only when selected, perhaps). 
+
+**In summary**, the Street Fighter 6–specific dashboard focuses on real-time match analytics (win/loss, combos, reactions, move usage ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=In%20summary%2C%20,rates%2C%20move%20usage%20stats%2C%20etc))】, automatically spots and visualizes match highlights (comebacks, big combos, momentum shifts) with SF6-themed flair, and layers on helpful explanations of SF6 terminology in a fun wa ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,missed%20attack%20from%20max%20distance%E2%80%9D))】. The end result is a dashboard that not only informs but delights – much like Street Fighter itself, it’s fast, colorful, and all about the hype moments, all while being technically grounded in data we can obtain or simulate for the game. This specialized view will activate whenever Street Fighter is the chosen game, ensuring a **bespoke experience** for SF6 fans and analysts within the EsportsAiScout system. 
+
