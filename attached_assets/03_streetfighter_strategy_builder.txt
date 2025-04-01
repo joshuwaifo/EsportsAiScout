@@ -1,0 +1,262 @@
+Awesome — I’ll now dive deep into building a technically sound, joyfully designed Strategy Builder feature for Street Fighter 6. This will focus on pre-match and live-match planning, including:
+- Auto-generating opponent scouting reports with real or simulated data.
+- Suggesting counter-picks, punishes, and round-openers based on habits.
+- Producing heatmaps that visualize frequent move zones.
+
+I’ll align the research with the objectives.txt judging criteria and output Replit-ready mock opponent data, gameplan suggestions, and implementation prompts that look and feel great.
+
+# Street Fighter 6 Strategy Builder Design for EsportsAiScout
+
+The **Street Fighter 6 Strategy Builder** is a comprehensive tool within the EsportsAiScout app aimed at helping players and coaches develop data-driven gameplans. By leveraging match data and AI analysis, it generates **scouting reports, counter-pick strategies, punishes, and visual heatmaps** to exploit an opponent’s tendencies. This feature is optimized for use **before matches (prep phase)** and **during matches** (quick insights between rounds) to elevate decision-making in real time. As fighting games like SF6 have a *“strong data-to-strategy loop”*, the Strategy Builder harnesses that loop to give players a competitive edge in a joyful, clear UI.
+
+## 1. Auto-Generated Opponent Scouting Reports
+
+**Purpose:** Provide a **natural-language summary** of the opponent’s playstyle tendencies, derived from their past match data. This mimics the way top players “download” an opponent’s habits, but faster.
+
+- **Data Extraction:** The system analyzes **replay and statistical data** from the opponent’s recent matches to quantify their behavior:
+  - **Aggression vs. Defense:** Are they rushdown aggressive or defensive and reactive? For example, the tool can track how often they **move forward vs. backward**, time spent cornering the opponent, or how frequently they initiate attacks versus block.
+  - **Wakeup Habits:** What do they do on knockdown? If data shows they “wake up” (rise from knockdown) with an invincible **Shoryuken (DP) reversal 40% of the time**, that’s a risky habit to exploit. The report might note *“tends to perform an invincible reversal on wakeup frequently – bait this out for a big punish.”*
+  - **Throw Tech Frequency:** Track how often they successfully **tech throws** vs. get thrown. A very high throw-tech rate could indicate they are twitchy on defense – the report could say *“defensively, they tech throws ~80% of the time, making them vulnerable to shimmy (walk-back bait) techniques.”*
+  - **Jump-In Rate and Anti-Air**: Measure how often they jump at the opponent and how often they get **anti-aired**. For instance, *“often starts rounds with jump-in attacks”*. If they jump frequently but have poor success (e.g. getting anti-aired a lot) it shows reckless approach; if they **jump and don’t get anti-aired** (perhaps the opponent failed to counter), it suggests their opponents struggled to counter them. A high success rate on jump-ins might indicate their past foes didn’t punish aerial approaches – something to be ready for. (E.g. *“Loves jump-in approaches, but over 50% of his jumps go unpunished – be prepared with anti-airs.”*)
+  - **Combo Execution and Drops:** Note their **execution consistency** – do they land big combos or frequently drop them under pressure? For example: *“tends to drop longer combos in clutch moments, indicating nerves.”* This insight can affect how much you respect their damage output.
+  - **Resource Usage:** Analyze how they use SF6’s **Drive Gauge and Super meter**. Do they frequently enter **Burnout** by overusing the Drive gauge? Do they save up Super meter without using it (missed opportunities)? For example: *“Often burns out by round end – consider pressuring when they’re low on Drive gauge.”* Efficient or poor meter use is a key tendency.
+  - **Adaptive Tendencies:** The report highlights if the opponent adjusts between rounds or is very set in their ways. Some players adapt (download complete) while others stick to one gameplan. For instance: *“Does not vary tactics much between rounds – likely to repeat patterns even after being punished.”*
+
+- **Natural Language Summary:** The tool outputs a concise scouting report in sentences, translating data into **human-readable insights**. For example:
+  - *“**Playstyle:** Very aggressive opener – often starts with a jump-in or dash punch. Tends to rely on high-risk moves (frequent wake-up DP) when pressured. Defensively, this player techs throws consistently but struggles to anti-air jumps.”*
+  - *“**Habits:** On knockdown, they **often reversal DP** (approx. 50% of knockdowns). In neutral, they favor mid-range pokes but will **jump if fireballed**. They rarely use their character’s projectile, preferring close combat (e.g. a Ken player who hardly throws fireballs).”*
+  - *“**Exploitable Tendencies:** Blocks low a lot but is vulnerable to overheads; tends to jump back from corner (corner escape attempt can be predicted).”*
+
+- **Highlight Exploits:** The system bolds or color-codes parts of the report that indicate a weakness **you can exploit**. For example, if the opponent *“often presses buttons after blocking two hits”*, the tool might highlight this as *“**Habits:** often mashes after two hits – exploit with frame traps.”* By automatically identifying such patterns, even subtle ones, the AI scout surfaces opportunities a player can capitalize on.
+
+These scouting insights mirror what a professional coach might tell a player before a match, condensing many matches worth of data into a quick briefing.
+
+## 2. Counter-Pick Suggestions and Punishes
+
+**Purpose:** Recommend optimal **character choices** and specific **tactical punishes** to counter the opponent’s main character and habits. This feature is driven by matchup statistics and move data to maximize the player’s advantage.
+
+- **Counter-Pick Character Advice:** The Strategy Builder looks at the opponent’s chosen character and suggests which of *your* available characters would statistically have an edge. This is based on **matchup win-rate data** from high-level play (e.g. community-sourced matchup charts and official stats). For example, if the opponent plays **Zangief** (a slow grappler), the tool might suggest picking a **zoning character** like JP or Guile, who have favorable matchups against Zangief (due to zoning tools that keep grapplers out). It would say something like: *“**Counter-Pick:** Consider using Guile – historically strong vs. Zangief with a ~6-4 matchup advantage (projectile zoning nullifies Gief’s approach).”* The recommendation is data-driven: e.g. referencing **CatCammy’s SF6 matchup table** which compiles high-level ranked data or Capcom’s official **“Battle Diagram”** win rates. This gives confidence that the suggestion isn’t just theorycraft, but backed by aggregated results.
+
+  - If the player only uses one main character (no secondary picks), this advice can still help by highlighting what **that character** needs to be mindful of. E.g. *“Your character has a slight disadvantage in this matchup – expect to work harder. Focus on spacing and whiff punishing, as that’s where this matchup can swing back.”* In teams where character switch is possible (or casual play), the counter-pick info becomes directly actionable.
+
+- **Key Punishes for Opponent’s Moves:** Using frame data knowledge and the opponent’s habits, the tool lists a few **specific punishes or counters**:
+  - It identifies the opponent’s **signature moves or frequent attacks** – for instance, if the opponent is a Ken player who **spams heavy Dragon Punch (DP)** or a Juri player doing a lot of unsafe **sweeps**, the system will list optimal punish combos. e.g. *“Punish **blocked DP** with: Jump-in HK, cr.MP, DP for max damage”*, or *“On blocking Juri’s sweep, immediately punish with cr.HP xx Hadoken”*. These punishes are based on frame data – a blocked sweep is usually very unsafe, so a heavy attack punish is guaranteed.
+  - It can also suggest **universal counters** for certain strategies: *“If opponent uses Drive Impact repeatedly, use Drive Parry or your own Drive Impact to counter.”* Or *“Bait **throws** by shimmying (step back to let their throw whiff, then punish).”* Each suggestion ties to a specific habit identified in the scouting report. For example, *“tends to throw a lot -> punish by neutral jumping: jump straight up on their wakeup to avoid throw and get a full jump-in combo.”*
+  - The tool leverages a knowledge base of common **move interactions** (akin to a coach’s matchup notes). It might say: *“Kimberly’s run -> slide is unsafe on block; be ready to block low and get a free combo.”* These tips ensure the player is prepared to capitalize on the opponent’s go-to moves.
+
+- **Opening Round Strategy:** The Strategy Builder even provides a tip for the **round start** situation, since many players have a favored round opener:
+  - It looks at what the opponent does at the very start of rounds (if data is available). For example, *“This opponent favors backdashing at round start 70% of the time.”* Knowing this, it might suggest *“open with a fast **Drive Rush** forward to close the gap immediately”* or *“use a long-range poke at round start to catch the backdash.”* If the opponent often opens with a jump or a fireball, the advice could be *“start by walking and blocking, ready to anti-air if they jump”*.
+  - These immediate tactics set the tone and can score an early hit. Even a small edge like a predicted backdash can yield a whiff punish. By including this in the strategy, the player goes into the match with a gameplan for **“Fight!”** as soon as the announcer calls it.
+
+- **Adaptive Suggestions:** Because matches evolve, the counter strategy can update if used *during* a set:
+  - For example, after one game, if the tool notices the opponent is abusing a certain tactic (maybe they weren’t using that in previous data but pulled it out now), it can suggest a mid-set adjustment. *“Opponent has started using Drive Impact frequently this set – look to neutral jump or Drive Reversal to counter it.”* 
+  - This dynamic aspect ensures the Strategy Builder isn’t a static pre-match scout only, but an active coach that **updates its advice as new data comes in** (if the app is used live and can record match events between rounds).
+
+By combining **who** you play (character choice) with **how** you play (specific punishes and tactics), the Strategy Builder covers strategic decisions from the macro level down to the micro level.
+
+## 3. Visual Heatmaps of Move Zones
+
+**Purpose:** Present visual **diagrams (heatmaps)** that illustrate where on the screen or at what ranges the opponent tends to perform certain actions. This gives a spatial sense of their habits – effectively showing their “hot zones” and vulnerabilities.
+
+- **Heatmap Generation:** The system processes match replays (or live tracking data) to record positions and actions:
+  - Street Fighter 6 is a 2D game, so one way to map activity is by the **horizontal distance or screen position**. We can imagine the stage divided into segments (e.g., Left Corner, Mid-range, Right Corner, or simply distance between fighters measured in in-game units).
+  - For each segment or distance range, the tool logs frequency of key actions by the opponent: **projectiles thrown, normals whiffed, jumps, dashes, etc.** For example, it might find that *“at roughly 3 character-lengths apart (mid-screen), the opponent throws a high number of fireballs,”* whereas *“at close range, they attempt many throws.”*
+  - These frequencies are then plotted as a heatmap grid. One axis could represent the **horizontal position or distance** and the other axis the **type of action**. The cell colors (from cool blue to hot red) indicate how often that action occurs at that position.
+
+- **Diagram Example:** Imagine a heatmap where the X-axis is **Position on Stage** (left to right, or distance from opponent) and Y-axis is **Action**:
+  - One row might be “Fireball thrown”. It could show red in the middle columns (meaning the opponent commonly throws fireballs from mid-screen) and blue in the corner columns (meaning they rarely throw fireballs when cornered or at point-blank range).
+  - Another row “Heavy Punch whiff” might show a hotspot at a specific range, indicating the opponent often whiffs heavy punches when you’re just outside their reach (classic footsies trap).
+  - “Jump Attempts” might light up at mid-range if the opponent likes to jump over fireballs from that distance.
+  - **Safe vs Danger Zones:** Using this, the tool can explicitly mark **“danger zones”** (where the opponent is most effective) and **“safe zones”** (where the opponent is less comfortable or where their moves don’t reach). For instance, *“The heatmap shows your opponent is most dangerous at close range (lots of throw and DP attempts in red). Conversely, at long range, they have no presence (blue) – a safe zone to reposition or throw projectiles.”*
+
+- **Interpretation:** Alongside the graphic, the Strategy Builder includes a short interpretation:
+  - *“Visual Analysis: Notice the **red cluster in mid-screen for jump-ins** – this player frequently jump attacks from that range. Be ready with anti-airs when you’re at mid distance. In contrast, their **fireball game is hot at full screen** but cools off at close range, meaning they use projectiles to control distance but abandon them up close.”*
+  - *“Safe Zone: Outside sweep range (~ beyond ½ screen) – the opponent has few threats here (they rarely approach without a projectile). Danger Zone: Corner – when cornered, they wildly attempt escape (see red in ‘jump’ and ‘DP’ in corner positions). Keep them cornered but watch for desperate moves.”*
+  - Such insights help players spatially understand how to position themselves. Against someone with a strong mid-range, you either want to be closer (inside their optimal range) or further (outside their range). The heatmap makes these tendencies **immediately visible**.
+
+- **Mock Heatmap Data (for integration):** To integrate into our app, the heatmap data might be structured as JSON. For example, we could use a grid representation:
+  ```json
+  {
+    "xLabels": ["Left Corner", "Near Range", "Mid Range", "Far Range", "Right Corner"],
+    "yLabels": ["Fireball", "Whiffed Normal", "Jump"],
+    "data": [
+      [1, 0, 5, 2, 0],   // Fireball frequencies at each zone
+      [0, 3, 5, 1, 0],   // Whiffed Normal frequencies
+      [0, 1, 4, 1, 0]    // Jump frequencies
+    ]
+  }
+  ```
+  In this example, the opponent threw 5 fireballs at mid range (red zone), and none in the corners (blue zones). They whiffed normals mostly at near-to-mid ranges. They attempted several jumps at mid range too. This JSON can feed a React heatmap component (like **react-heatmap-grid** or similar) to render the colored grid.
+
+The heatmaps add a **visual, intuitive layer** to the scouting report. Even at a glance, a player can see “where on the screen should I be careful?” and “where can I fight them on my terms?” This is a novel approach inspired by other sports – for instance, Fightmetric’s MMA heatmaps show where fights take place, and we apply the concept to a 2D fighting game arena.
+
+## 4. Data Sources and Retrieval of Opponent Data
+
+To power the above features, the Strategy Builder needs quality data on the opponent. Several sources and methods are utilized:
+
+- **Capcom Fighters Network (CFN) and Buckler’s Boot Camp:** Street Fighter 6’s online platform (CFN) tracks player match history, character stats, and even provides global **win rate data per matchup** (via the Buckler’s Boot Camp website). By accessing a player’s CFN profile (with permission), the tool can pull:
+  - Recent matches, characters used, win/loss.
+  - Replay files or metadata (which can be parsed for move events).
+  - Aggregate stats like attack frequencies, combo counts, etc.
+  
+  *Implementation:* While Capcom doesn’t offer an open public API, it’s possible to **scrape** data or use community-developed APIs ([Does Capcom provide an API with CFN data? : r/StreetFighter - Reddit](https://www.reddit.com/r/StreetFighter/comments/1btnlnv/does_capcom_provide_an_api_with_cfn_data/#:~:text=Reddit%20www,doesn%27t%20support%20community%20sourced)) ([andrewzah/sf6-api - GitHub](https://github.com/andrewzah/sf6-api#:~:text=andrewzah%2Fsf6,the%20api%20is%20very%20unstable)). For example, the app could use a headless browser or API wrapper to fetch the opponent’s profile and recent match logs. If direct data isn’t accessible live, the user could also **upload replay files** or enter the opponent’s CFN ID for the app to retrieve their info beforehand.
+
+- **Community Data & APIs:** The FGC community often builds tools to gather data. For instance:
+  - **CatCammy’s matchup table** (mentioned above) compiles ranked match outcomes for thousands of games. This can be used as a lookup for matchup win probabilities.
+  - **Tournament result APIs**: For professional opponents, sites like Smash.gg (Start.gg) or Capcom Pro Tour archives might have data on match outcomes and character usage in tournaments. While not as granular as frame-by-frame data, knowing a player’s tournament history (e.g. tends to lose against certain character players) is useful context.
+  - **Video analysis**: In absence of direct data, recorded match videos can be analyzed via computer vision (detecting health bars, move animations, etc. – though this is complex). The project could incorporate a simplified version using **ML models trained to recognize moves from video frames**, to generate data when other sources aren’t available.
+  
+  We have identified various data pipelines like **tournament APIs, community scrapers, and video parsing to feed the system with reliable information**. These ensure that even if one source is unavailable, others can fill the gap.
+
+- **Simulated/Mock Data for AI Training:** The Strategy Builder can generate a **mock opponent profile** if needed, using known general tendencies:
+  - For example, if facing an unknown player who uses Ryu, the system might use average Ryu statistics as a baseline (e.g., Ryu players at intermediate level might have, say, 30% throw tech rate, moderate fireball usage, etc.). It could then update this as it observes the opponent in the first round.
+  - We provide developers a way to input mock data easily (for testing the feature in Replit). A simple JSON format could be:
+    ```json
+    {
+      "opponent": "PlayerXYZ",
+      "character": "Ken",
+      "playstyle": {"aggression": 0.8, "defense": 0.2}, 
+      "tendencies": {
+        "wakeupDP": 0.5,
+        "throwTechRate": 0.3,
+        "jumpInRate": 0.4,
+        "antiAirSuccess": 0.2
+      },
+      "commonMoves": ["DragonPunch", "Sweeps"],
+      "preferredRange": "mid",
+      "notes": "Very aggressive, momentum-based player"
+    }
+    ```
+    This is just an example. In practice, the app would fill this out from real data, but having this structure helps test the UI and logic.
+
+- **Data Update Frequency:** Before a match, a user can fetch the latest data on their opponent (imagine a “Scout Opponent” button that pulls their recent 20 matches from CFN). During a live tournament, data from the ongoing match (each round’s events) can be appended to refine the analysis. The system is designed to be **adaptive and real-time** to some degree, within the limits of match pacing and data availability.
+
+By combining these sources, the Strategy Builder ensures **data-driven insights** rather than hunches. Every recommendation it gives can be traced to data – either **historical stats or live observations**, making the advice trustworthy and grounded in reality.
+
+## 5. Real-Time Use During Matches
+
+The Strategy Builder is not just a pre-game tool; it’s designed to assist **during a match** without causing distraction or delays. Here’s how it can function in various scenarios:
+
+- **Between Rounds:** Street Fighter matches typically have short breaks between rounds (a few seconds) and a longer break between games in a set. The app can display a **“between-round summary”** on a secondary screen (or to a coach):
+  - This summary might include one **key adjustment tip** (in large text for quick reading). For example, *“Tip: He’s jumped at you 3 times in Round 1 – anti-air those!”* or *“Tip: You’ve thrown 2 fireballs and he Drive Impacted through both – use feints or be ready to cancel to parry.”* 
+  - It could highlight a **stat from that round**: e.g., *“Round 1: Opponent wake-up DP x2 (both times!) – next knockdown, consider blocking on wake-up.”* Such bite-sized insights can be absorbed in seconds as the next round loads. The system basically does a mini-analysis of the previous round and pops one or two crucial points.
+  - The UI can be as simple as a pop-up or overlay. Perhaps a small overlay on the game feed (if using PC, like a transparent window showing the tip) or a notification on a smartwatch/phone for the coach. We ensure it’s **non-intrusive and quick to read** (big font, minimal text).
+
+- **Between Games:** In tournament sets (best of 3 or 5 games), between games there’s often a longer break (players may take 30-60 seconds, sometimes even consult a coach). Here, the Strategy Builder can be consulted for a slightly more detailed recap:
+  - The **scouting report** section can update: e.g., *“Opponent confirmed tendencies: indeed very DP-happy (5 DPs in Game 1, 3 were on wakeup). Now also noted: doesn’t tech throws when tired – you landed 4/4 throws in Round 3.”* This confirms pre-match expectations or reveals new info.
+  - The **counter-punish suggestions** might update if the opponent revealed a new move they use. For example, if in Game 1 they started using a certain unsafe special move a lot, the tool will list the punish for that explicitly going into Game 2.
+  - If you have a character switch option, the tool might even revise its **counter-pick recommendation** if things went poorly – *“Suggest switching to Character B for better tools against X’s strategy seen in Game 1.”* (Of course, mid-set character switch depends on tournament rules; typically only the loser can switch.)
+  - All this can be accessed via the app’s **“Mid-match analysis” screen**. The UX here should be tournament-friendly: possibly a “coach mode” on a tablet or phone where the coach can quickly scroll through the key points and then verbally relay to the player (since players often cannot use electronics during an official match themselves, but a coach could have it).
+
+- **Live Overlay Possibility:** In less formal settings (ranked online play or practice sessions), the app could act as a live overlay or second-screen assistant. For example:
+  - **Audio Cues:** The app could play a subtle sound or voice cue when a notable event happens that the player tends to forget. E.g., a short voice line “Watch for the jump!” if the opponent hasn’t jumped in a while and might be due (though this might be distracting if overused).
+  - **Controller Rumble (Experimental):** Perhaps if connected to a controller, a slight vibration could alert the player to something (this is speculative and would need careful design to not interrupt gameplay).
+  
+  However, these real-time aids must be used carefully – high-level players focus intensely, so the Strategy Builder mostly focuses on *between-rounds* rather than *during actual combat* to deliver its value.
+
+- **Post-Match Report:** Although not exactly “during” the match, it’s worth noting the tool can generate a **comprehensive report after the match** combining all these insights. This is great for training review. It could include the full scouting report, what suggestions were given, and whether they were executed (if the app can tell, e.g., “Suggested anti-airing jump-ins; you successfuly anti-aired 2/5 opportunities”). This closes the loop, helping the player learn for next time.
+
+By functioning as a smart “assistant coach” in real-time, the Strategy Builder can **improve adaptation and decision-making on the fly**, which is exactly what defines top players in Street Fighter. The key is delivering the right information at the right time, without overload – something this tool is carefully tuned to do.
+
+## 6. Joyful and Exciting UX Design
+
+To satisfy the SCAI criteria for **beauty, joy, and UX clarity**, the Strategy Builder’s design will be **engaging, game-themed, and user-friendly**. We want users to *enjoy* using this tool, not just treat it as a dry data spreadsheet. Here are some UX design choices:
+
+- **Street Fighter Aesthetic:** We borrow the vibrant style of SF6’s UI. For example, the scouting report could be presented on a **virtual “player card”** with a stylized character avatar and dynamic effects. If the opponent’s character is Juri, maybe the card has purple spider lily motifs; if it’s Ryu, a fiery background. Using SF6’s color schemes (the bold neon greens and pinks of the Drive Gauge, etc.) will make the tool feel like an extension of the game.
+- **Animated Scouting Reports:** Rather than plain text, make the key points appear with a slight animation – e.g. a typewriter effect for the sentences, or icons appearing next to text (a jumping icon next to “jumps a lot”, a shield icon next to “defensive”). Small animations (kept short to not waste time) add delight and also emphasize points. For instance, when highlighting *“often does wakeup DP”*, an animation of an uppercut could play on a mini sprite – a visual shorthand that’s both fun and informative.
+- **Icons & Visual Cues:** Use clear icons for things like **attack, defense, throw, jump**. A quick glance at a colored icon can tell the story (like a red up-arrow icon for “aggressive playstyle” vs a blue turtle shell for “defensive”). These help in skimming the report quickly, aligning with the UX clarity goal.
+- **Gamified Elements:** We can incorporate a bit of gamification to make using the Strategy Builder joyful:
+  - Perhaps have a **“Scout Level”** that increases as you use the tool, or achievements like “Exploited a Weakness!” when you successfully act on the tool’s advice (tracked via post-match analysis).
+  - A fun idea: a **“Mini boss” theme** – treat each opponent as a boss fight and the strategy report as a “boss dossier” (like how games show a boss’s weaknesses). This theming can make the pre-match prep feel exciting, like you got insider info on the boss.
+- **Smooth Integration:** The feature would be a section in the app’s UI (likely under a **Strategy** tab). It should be well-organized with tabs or sections for “Report”, “Counter Picks”, “Heatmap”, etc., so users can navigate easily. Perhaps a **tabbed interface**: one tab shows the written scouting report, another shows the heatmap graphic, another shows the punishes list. This way each view is clean and not overloaded.
+- **Responsive Design:** Since coaches or players might use this on different devices (desktop while training, mobile at an event), the layout should adapt. On mobile, the text might need to be larger and the heatmap could be simplified (maybe tap to toggle between different heatmaps for different moves, if screen is small). Clarity is key: short paragraphs (no walls of text), important words bolded, consistent styling.
+- **Feedback and Delight:** Little delight features: when the report is generated, perhaps a **sound effect** plays (nothing too wild, maybe the classic “fight intro” sound or a short riff from the game). When showing recommended punishes, maybe a **combo counter icon** ticks up (mimicking the in-game combo counter) to indicate damage potential. These touches tie the strategy experience to the actual game feel.
+- **Color Coding and Themes:** Use color coding to differentiate types of tips:
+  - Blue for defensive tips, red for offensive, green for general/misc. This subconsciously prepares the player (e.g., a lot of red tips = you need to be on the offense; a lot of blue = caution, play safe).
+  - If possible, allow a **“theme”** where the user can pick a favorite character as the backdrop theme (just cosmetic).
+- **Clarity in Language:** While we include game terminology (DP, anti-air, etc.), we ensure the language is clear. If a term is advanced, maybe have a tiny tooltip or “?” that defines it (for newer players using the tool). For example, *“frame trap”* could have a hover explanation. This makes the tool welcoming to less experienced competitors as well – adding educational value.
+
+Overall, the UX aims to make the user feel like they have an **AI co-pilot** that’s not only smart but also *fun to work with*. It should reduce stress (by providing guidance) and increase hype (by presenting info in an exciting way). The combination of **data-driven insights and a polished, thematic presentation** will impress judges and users alike, showing that analytics can be exciting in esports just as much as raw gameplay.
+
+## 7. Replit Integration and Implementation Notes
+
+We want to ensure this feature can be prototyped and tested easily, especially in a Replit environment with React/TypeScript (as our project uses). Below are implementation suggestions and a prompt for building it:
+
+**Data & State Management:** We will integrate mock data structures for an opponent’s profile and heatmap (as discussed). This can reside in a context or a simple JSON file that the React app imports (for prototyping). For example, extend the `mockData.ts` with a `strategyReport` object:
+```ts
+// mockData.ts (additional content)
+export const opponentData = {
+  name: "PlayerXYZ",
+  character: "Ken",
+  tendencies: {
+    aggression: 0.8,
+    defense: 0.2,
+    wakeupDP: 0.5,
+    throwTechRate: 0.3,
+    jumpInRate: 0.4,
+    antiAirSuccessRate: 0.2
+  },
+  preferredRange: "mid", 
+  commonMoves: ["Shoryuken (DP)", "Sweep (c.HK)"]
+};
+
+export const heatmapData = {
+  xLabels: ["Left Corner", "Near", "Mid", "Far", "Right Corner"],
+  yLabels: ["Fireball", "Whiffed Normals", "Jump"],
+  data: [
+    [0, 1, 4, 0, 0],  // Fireball frequency
+    [0, 2, 5, 1, 0],  // Whiffed normals frequency
+    [0, 1, 3, 1, 0]   // Jump frequency
+  ]
+};
+```
+
+**React Components:** Create a `<StrategyBuilder>` component (e.g., `StrategyBuilder.tsx`) that will use this data and render the UI sections:
+- **<StrategyBuilder>**: High-level component that pulls in opponent data (perhaps via a `useContext(PlayerContext)` if integrated with the existing app context, or directly from `mockData` for now). It then renders sub-components or sections:
+  - *Scouting Report Section*: Could be a `<div>` or card that lists the natural language report. We can dynamically generate sentences from `opponentData.tendencies`. For now, we could hardcode the example text or create small helper functions (in `StrategyUtils.tsx`) to map data to text (e.g., if `wakeupDP > 0.4`, include “tends to reversal on wakeup”).
+  - *Counter Picks & Punishes Section*: A list (ul) of recommendations. This might be static suggestions for the mock opponent or derived from `commonMoves`. E.g., if "Sweep" in commonMoves, add a list item: "Punish blocked sweep with X". In a real scenario, this would come from a knowledge base – for now, just demonstrate by conditional rendering based on character or moves.
+  - *Heatmap Section*: Use a heatmap library or a simple table. For quick prototyping, we can use `react-heatmap-grid` (add to package.json). The component would take `heatmapData` and render a grid with colors. Alternatively, for a custom approach, render an HTML table where cell background color is determined by the `data` values (with a color scale).
+  - Ensure each section has a clear heading or title in the UI (e.g., “Scouting Report”, “Counter Strategy”, “Heatmap”) for UX clarity.
+
+**UI/UX Implementation Details:**
+- Use existing UI components from the app if available (the zip indicates there are Card, Button, etc. in `ui` components). For example, wrap sections in `<Card>` for a nice outlined box. Use `<CardContent>` for the innards, etc.
+- For animated delivery of the report: use CSS animations or a library to fade in the text. We can keep it simple: when the component mounts, use a state to gradually show list items or use CSS `@keyframes` for slide-in.
+- For icons: incorporate icon libraries (Lucide icons are in use as per mockData import of TrophyIcon, etc.). We might use a `CrosshairIcon` next to “aggressive playstyle” or a `ShieldIcon` for defensive, etc. Place these icons in the text for visual flair.
+- Color coding: perhaps use Tailwind classes or inline style based on the category of text (e.g., `<span className="text-red-500">Aggressive</span>`).
+- The heatmap cells can be colored via conditional class (if using Tailwind, e.g., bg-blue-200 to bg-red-600 for lowest to highest). Or if using a library, it will handle coloring.
+
+**Replit Execution:** Ensure that the `StrategyBuilder` is imported and used in the appropriate page, likely `strategy.tsx` page route (as seen in the file list). This page can then display our component. Also, wire up a **download report button** (the code snippet in `StrategyRecommendation.tsx` suggests a DownloadIcon and a FullReportGenerationDialog – maybe repurpose that). The download could simply save the text report and heatmap data as a JSON or PDF in the future.
+
+**Prompt for Replit’s AI or Developer**:
+```markdown
+**Task:** Implement the *Street Fighter 6 Strategy Builder* feature in the EsportsAiScout React/TypeScript app.
+
+1. **Data Integration:** In `src/data/mockData.ts`, add mock opponent data and heatmap data for testing (see example structure above). Ensure this data can be accessed by components (either export/import or via Context if preferred).
+
+2. **Create Components:** 
+   - `StrategyBuilder.tsx`: Main component to display the strategy report.
+   - Within it, structure sections for:
+     a. **Scouting Report** – use opponent data to display key tendencies in sentences or bullet points.
+     b. **Counter-Picks & Punishes** – show recommended character (if any) and a list of punishing tips. Use icons (e.g., a sword icon for offense) to make it visual.
+     c. **Heatmap** – use `heatmapData` to render a heatmap. Consider using `react-heatmap-grid` for a quick solution (color the grid based on values). If using a custom solution, create a table of cells colored by intensity.
+   - Make sure to style these sections using the app’s design system (Tailwind classes, `<Card>` components, etc.). Each section should be clear and distinct.
+
+3. **Animate/Style:** Add small animations or highlights:
+   - For example, fade in the scouting report text.
+   - Use a colored badge or icon next to each tendency (e.g., 🔺 for aggressive, 🛡️ for defensive).
+   - Style the heatmap cells with a gradient from cool (low values) to warm (high values).
+   - The overall look should match the SF6 theme (dark background, neon accents). You can add a CSS background image or gradient that evokes SF6 if it fits.
+
+4. **User Interaction:** 
+   - Add a button “Download Full Report” that triggers the existing `FullReportGenerationDialog` (if set up) or simply triggers a download of the JSON (for now, it can just stringify `opponentData` and `heatmapData` and download as a `.json` file for demonstration).
+   - If time permits, allow toggling between different views (maybe tabs for Report vs. Heatmap).
+
+5. **Testing:** Render the `StrategyBuilder` component on the `/strategy` page (or any appropriate route). Use the provided mock data to verify that the content makes sense (adjust the mock values to see changes in text and heatmap).
+   - Ensure responsiveness (check on a smaller window).
+   - Get feedback from a sample scenario (e.g., change the opponent character to see if the UI can handle different text lengths or different suggestions).
+
+**Goal:** The final UI should present the opponent scouting insights clearly and in an exciting way, meeting the design described. It should be easily extensible to real data once integrated.
+```
+
+By following the above steps, a developer (or Replit’s AI) can implement the Strategy Builder feature. The result will be a **joyful, technically robust, and insightful** addition to EsportsAiScout, aligning perfectly with the judging criteria: we deliver **data-driven insights** (tendencies, matchup sta4】), a beautiful and clear UX, and real-time strategic value – truly elevating the competitive Street Fighter experience with 4】.
+

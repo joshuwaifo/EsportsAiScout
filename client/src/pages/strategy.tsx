@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TeamRadarChart from "@/components/dashboard/TeamRadarChart";
 import StrategyRecommendation from "@/components/strategy/StrategyRecommendation";
 import OneKeyStrategy from "@/components/strategy/OneKeyStrategy";
+import StreetFighterStrategyBuilder from "@/components/strategy/StreetFighterStrategyBuilder";
 import { 
   StrategyGenerationDialog,
   FullReportGenerationDialog,
@@ -170,33 +171,11 @@ export default function Strategy() {
             />
 
             <div className="px-4 mx-auto mt-8 max-w-7xl sm:px-6 md:px-8">
-              {/* Street Fighter Strategy Card */}
+              {/* Street Fighter Strategy Builder */}
               {selectedGame === "Street Fighter" && (
-                <Card className="mb-8 bg-surface border-none">
-                  <CardHeader>
-                    <CardTitle>Street Fighter Strategy Focus</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="mb-4">
-                      Match-up analysis and adaptation are key. Identify your opponent's patterns in Round 1 and adjust by Round 3. 
-                      Also, consider practicing counter-strategies against characters that have given you trouble in past tournaments.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                      <div className="p-4 bg-primary/10 rounded-md">
-                        <h4 className="font-semibold mb-2 text-primary">Character Matchups</h4>
-                        <p className="text-sm">Study frame data and optimal punishes for each character. Practice specific counters to popular moves.</p>
-                      </div>
-                      <div className="p-4 bg-primary/10 rounded-md">
-                        <h4 className="font-semibold mb-2 text-primary">Spacing Control</h4>
-                        <p className="text-sm">Master the neutral game by controlling space. Know your character's optimal ranges and when to approach or retreat.</p>
-                      </div>
-                      <div className="p-4 bg-primary/10 rounded-md">
-                        <h4 className="font-semibold mb-2 text-primary">Mental Game</h4>
-                        <p className="text-sm">Observe patterns in your opponent's defense and offense. Mix up your approach to prevent being predictable.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="mb-8">
+                  <StreetFighterStrategyBuilder />
+                </div>
               )}
               
               {/* PUBG Mobile Placeholder */}
