@@ -24,18 +24,148 @@ import {
   DownloadIcon, 
   PlusIcon, 
   BoltIcon,
-  BrainIcon
+  BrainIcon,
+  TrophyIcon,
+  CrosshairIcon,
+  ClockIcon,
+  GamepadIcon
 } from "lucide-react";
+import { useGame } from "@/context/GameContext";
 
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
   const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
   const [aiInsights, setAiInsights] = useState(initialAiInsights);
+  const { selectedGame } = useGame();
+  
+  // Prepare game-specific data based on selected game
+  
+  // 1. Street Fighter specific stat cards
+  const statCardsData = selectedGame === "Street Fighter" ? [
+    { title: "Win Rate", value: "75%", change: "+3.0%", icon: TrophyIcon, trend: "up" as const },
+    { title: "Attack Accuracy", value: "60%", change: "+1.5%", icon: CrosshairIcon, trend: "up" as const },
+    { title: "Avg Match Duration", value: "01:20", change: "-0:10", icon: ClockIcon, trend: "down" as const },
+    { title: "Clutch Win Rate", value: "65%", change: "+5%", icon: BrainIcon, trend: "up" as const }
+  ] : statCards;
+  
+  // 2. Street Fighter specific team attributes for radar chart
+  const sfAttributes = [
+    { name: "Offense", value: 0.9 },
+    { name: "Defense", value: 0.8 },
+    { name: "Execution", value: 0.85 },
+    { name: "Adaptability", value: 0.7 },
+    { name: "Mind Games", value: 0.75 },
+    { name: "Clutch", value: 0.6 }
+  ];
+  
+  const attributesData = selectedGame === "Street Fighter" ? sfAttributes : teamAttributes;
+  
+  // 3. Street Fighter specific AI insights
+  const sfInsights = [
+    {
+      type: 'tip' as const,
+      title: "Strong Anti-Air Defense",
+      description: "This player successfully countered 75% of jump-in attacks, indicating excellent anti-air timing."
+    },
+    {
+      type: 'warning' as const,
+      title: "Low Throw Escape Rate",
+      description: "Throw-tech success is only 30%. The player could be vulnerable to throws – focus on improving throw escape reactions."
+    },
+    {
+      type: 'stat' as const,
+      title: "Frame Advantage Usage",
+      description: "Successfully capitalizes on frame advantage in 82% of opportunities, leading to effective pressure sequences."
+    }
+  ];
+  
+  const insightsData = selectedGame === "Street Fighter" ? sfInsights : aiInsights;
+  
+  // 4. Street Fighter specific player prospects
+  const streetFighterPlayers = [
+    {
+      id: 101,
+      name: "KenMaster",
+      role: "Aggressive",
+      position: "Shoto",
+      matchPercentage: 92,
+      skills: [
+        { name: "Anti-Air", value: 95 },
+        { name: "Footsies", value: 88 },
+        { name: "Combo Execution", value: 90 },
+        { name: "Adaptation", value: 85 },
+        { name: "Throw Techs", value: 70 }
+      ],
+      tournaments: 12,
+      rating: 9.2,
+      stats: {
+        kda: 3.8,
+        winRate: 78,
+        gamesPlayed: 350
+      }
+    },
+    {
+      id: 102,
+      name: "GuileMain",
+      role: "Defensive",
+      position: "Charge",
+      matchPercentage: 88,
+      skills: [
+        { name: "Anti-Air", value: 92 },
+        { name: "Footsies", value: 95 },
+        { name: "Combo Execution", value: 82 },
+        { name: "Adaptation", value: 75 },
+        { name: "Throw Techs", value: 85 }
+      ],
+      tournaments: 8,
+      rating: 8.8,
+      stats: {
+        kda: 3.5,
+        winRate: 72,
+        gamesPlayed: 280
+      }
+    },
+    {
+      id: 103,
+      name: "ZangStar",
+      role: "Balanced",
+      position: "Grappler",
+      matchPercentage: 85,
+      skills: [
+        { name: "Anti-Air", value: 80 },
+        { name: "Footsies", value: 75 },
+        { name: "Command Grabs", value: 95 },
+        { name: "Adaptation", value: 82 },
+        { name: "Throw Techs", value: 65 }
+      ],
+      tournaments: 6,
+      rating: 8.5,
+      stats: {
+        kda: 3.2,
+        winRate: 70,
+        gamesPlayed: 220
+      }
+    }
+  ];
+  
+  const players = selectedGame === "Street Fighter" ? streetFighterPlayers : playerProspects;
+  const topPlayer = players[0];
   
   // Function to generate more insights
   const generateMoreInsights = () => {
     // New insights to add
-    const newInsights = [
+    const newInsights = selectedGame === "Street Fighter" ? [
+      {
+        type: 'tip' as const,
+        title: 'Counter-hit Conversion',
+        description: 'Your counter-hit conversion rate has improved by 15%. Continue practicing hit-confirms from blocked moves.'
+      },
+      {
+        type: 'stat' as const,
+        title: 'Critical Art Usage',
+        description: 'Critical Art landed in 70% of attempts, showing good judgment in super meter usage.'
+      }
+    ] : [
       {
         type: 'tip' as const,
         title: 'Mid Game Strategy',
@@ -65,8 +195,10 @@ export default function Dashboard() {
     // For demonstration, let's add a new insight based on the "analysis"
     const analysisInsight = {
       type: 'stat' as const,
-      title: 'New Team Analysis',
-      description: `Team synergy score: ${data.winPercentage}%. Focus on improving team communication.`
+      title: selectedGame === "Street Fighter" ? 'Match Analysis Results' : 'New Team Analysis',
+      description: selectedGame === "Street Fighter" 
+        ? `Player performance analysis: ${data.winPercentage}% win probability against current opponents.`
+        : `Team synergy score: ${data.winPercentage}%. Focus on improving team communication.`
     };
     
     setAiInsights(prevInsights => [analysisInsight, ...prevInsights]);
@@ -74,7 +206,7 @@ export default function Dashboard() {
 
   // Handler for exporting data
   const handleExportData = () => {
-    exportTeamData(teamAttributes);
+    exportTeamData(attributesData);
   };
 
   return (
@@ -142,9 +274,13 @@ export default function Dashboard() {
           <div className="py-6">
             <PageHeader 
               title="Dashboard"
-              subtitle="Current Match: Team Alpha vs Team Zenith"
+              subtitle={`for ${selectedGame}`}
               actions={
                 <>
+                  <div className="mr-3 bg-surface/80 text-white text-sm px-3 py-1.5 rounded-md flex items-center">
+                    <GamepadIcon className="h-4 w-4 mr-1.5 text-accent" />
+                    {selectedGame}
+                  </div>
                   <Button 
                     variant="secondary" 
                     size="sm" 
@@ -168,7 +304,7 @@ export default function Dashboard() {
             <div className="px-4 mx-auto mt-8 max-w-7xl sm:px-6 md:px-8">
               {/* Stat Cards */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {statCards.map((card, index) => (
+                {statCardsData.map((card, index) => (
                   <StatCard 
                     key={index}
                     title={card.title}
@@ -190,7 +326,7 @@ export default function Dashboard() {
                 {/* AI Insights */}
                 <div>
                   <AIInsights 
-                    insights={aiInsights} 
+                    insights={insightsData} 
                     onGenerateMore={generateMoreInsights} 
                   />
                 </div>
@@ -198,15 +334,17 @@ export default function Dashboard() {
 
               {/* Player Scouting Section */}
               <div className="mt-8">
-                <h3 className="mb-4 text-xl font-semibold text-white">Top Scouting Prospects</h3>
+                <h3 className="mb-4 text-xl font-semibold text-white">
+                  {selectedGame === "Street Fighter" ? "Top Fighter Prospects" : "Top Scouting Prospects"}
+                </h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {playerProspects.slice(0, 3).map((player, index) => (
+                  {players.slice(0, 3).map((player, index) => (
                     <PlayerCard key={index} player={player} />
                   ))}
                 </div>
                 <div className="flex justify-center mt-6">
                   <Button variant="secondary">
-                    View All Prospects
+                    {selectedGame === "Street Fighter" ? "View All Fighters" : "View All Prospects"}
                   </Button>
                 </div>
               </div>
@@ -215,13 +353,45 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-2">
                 {/* Team Performance Chart */}
                 <div>
-                  <TeamRadarChart attributes={teamAttributes} />
+                  <TeamRadarChart attributes={attributesData} />
                 </div>
 
-                {/* AI Strategy Recommendations */}
-                <div>
-                  <StrategyRecommendation draftPicks={draftRecommendations} />
-                </div>
+                {/* AI Strategy Recommendations - Only show for League of Legends */}
+                {selectedGame === "League of Legends" ? (
+                  <div>
+                    <StrategyRecommendation draftPicks={draftRecommendations} />
+                  </div>
+                ) : selectedGame === "Street Fighter" ? (
+                  <div className="bg-surface p-6 rounded-lg shadow-md">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <GamepadIcon className="mr-2 h-5 w-5 text-accent" />
+                      Character Matchup Analysis
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="bg-darkBg p-4 rounded-md border border-gray-700">
+                        <h4 className="font-medium text-accent mb-2">Favorable Matchups</h4>
+                        <p className="text-sm text-gray-300">Based on current fighting style, you have a 70%+ win rate against charge characters and grapplers.</p>
+                      </div>
+                      <div className="bg-darkBg p-4 rounded-md border border-gray-700">
+                        <h4 className="font-medium text-accent mb-2">Challenging Matchups</h4>
+                        <p className="text-sm text-gray-300">Struggle against zoners who maintain distance. Consider adding more approach options to your strategy.</p>
+                      </div>
+                      <div className="bg-darkBg p-4 rounded-md border border-gray-700">
+                        <h4 className="font-medium text-accent mb-2">Recommended Training</h4>
+                        <p className="text-sm text-gray-300">Focus on anti-zoner drills and practice against characters like Guile and Dhalsim.</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-surface p-6 rounded-lg shadow-md">
+                    <h3 className="text-lg font-semibold text-white mb-4">
+                      Game-Specific Strategy
+                    </h3>
+                    <p className="text-gray-300">
+                      Select League of Legends or Street Fighter for detailed strategy recommendations.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

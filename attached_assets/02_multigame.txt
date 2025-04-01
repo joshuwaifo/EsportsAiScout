@@ -1,0 +1,72 @@
+Prompt 2: Contextualize Dashboard Page by Game
+Feature: Refactor the Dashboard page so that its stats and insights reflect the selected game. When Street Fighter is selected, show Street Fighter–specific metrics; for other games, show default or placeholder content. We will reuse the existing dashboard components (stat cards, charts, insights) but feed them game-specific data. Instructions:
+Access Selected Game: Open the Dashboard page component (client/src/pages/dashboard.tsx). Import useContext and your GameContext (or useGame hook) at the top. Inside the Dashboard component, call const { selectedGame } = useContext(GameContext) to get the current game.
+Prepare Game-Specific Data: We will define data for Street Fighter vs other games. At the top of the Dashboard component (after retrieving selectedGame), set up conditional data sources:
+Stat Cards: If selectedGame === "Street Fighter", define an array statCardsData with Street Fighter metrics. For example:
+jsx
+Copy
+const statCardsData = selectedGame === "Street Fighter" ? [
+  { title: "Win Rate", value: "75%", change: "+3.0%", icon: TrophyIcon, trend: "up" },
+  { title: "Attack Accuracy", value: "60%", change: "+1.5%", icon: CrosshairIcon, trend: "up" },
+  { title: "Avg Match Duration", value: "01:20", change: "-0:10", icon: ClockIcon, trend: "down" },
+  { title: "Clutch Win Rate", value: "65%", change: "+5%", icon: BrainIcon, trend: "up" }
+] : statCards;  
+Here we use Trophy, Crosshair, Clock, Brain icons (already imported) to represent these stats. The Street Fighter values and labels are examples: Win Rate, Attack Accuracy (percentage of hits that land), Average Match Duration (around 1 minute 20 seconds), and Clutch Win Rate (how often the player wins final-round or comeback situations). We use the existing statCards (imported from mockData) as the default for other games (which covers League of Legends currently).
+Performance Charts: For the radar chart (team attributes/spider chart), prepare a Street Fighter-specific set. If selectedGame === "Street Fighter", create sfAttributes like:
+jsx
+Copy
+const sfAttributes = [
+  { name: "Offense", value: 0.9 },
+  { name: "Defense", value: 0.8 },
+  { name: "Execution", value: 0.85 },
+  { name: "Adaptability", value: 0.7 },
+  { name: "Mind Games", value: 0.75 },
+  { name: "Clutch", value: 0.6 }
+];
+These represent the player or team’s capabilities in Street Fighter (on a 0-1 scale). Use 6 attributes to match the radar chart’s expectation (replacing the LoL attributes like Vision, Objectives with SF-centric ones). Then determine the attributesData for the chart:
+jsx
+Copy
+const attributesData = selectedGame === "Street Fighter" ? sfAttributes : teamAttributes;
+(Assuming teamAttributes is the default imported data for other games.) This will be passed to the <TeamRadarChart> component.
+AI Insights: The Dashboard shows AI-generated insights/tips. Define Street Fighter–specific insights when that game is selected. For example:
+jsx
+Copy
+const sfInsights = [
+  {
+    type: "tip",
+    title: "Strong Anti-Air Defense",
+    description: "This player successfully countered 75% of jump-in attacks, indicating excellent anti-air timing."
+  },
+  {
+    type: "warning",
+    title: "Low Throw Escape Rate",
+    description: "Throw-tech success is only 30%. The player could be vulnerable to throws – focus on improving throw escape reactions."
+  }
+];
+const insightsData = selectedGame === "Street Fighter" ? sfInsights : initialAiInsights;
+Here we give two Street Fighter insights: a positive tip about anti-air success (an important metric in fighting games) and a warning about low throw-tech (escape) rate. We use the existing initialAiInsights for other games as a default. The AIInsights component will display these with appropriate icons (e.g. a lightbulb for tips, warning triangle for warnings).
+Player Highlight/Prospect: If the Dashboard highlights a top player (using <PlayerCard>), ensure it uses a player relevant to the selected game. For Street Fighter, you may create a sample player object (or use one from the scouting data we’ll prepare) – for now, you can use the first of a Street Fighter prospects list. E.g., define:
+jsx
+Copy
+const players = selectedGame === "Street Fighter" ? streetFighterPlayers : playerProspects;
+const topPlayer = players[0];
+(We will set up streetFighterPlayers in the scouting data prompt; ensure it’s imported if defined externally. As a placeholder, you can define a quick SF player here similarly to how we’ll do in the scouting page: name, main character in role, etc.)
+Apply Data to Components: Now, replace uses of static imports with our conditional data:
+For stat cards: wherever the code currently maps statCards (e.g. {statCards.map(card => <StatCard ... />)}), change it to use statCardsData (our new variable). This way, the displayed stats are from sfStatCards when Street Fighter is selected. Ensure the StatCard props (title, value, change, icon, trend) match the structure.
+Pass attributesData to the <TeamRadarChart> component instead of the default. For example: <TeamRadarChart attributes={attributesData} />. This will show the Street Fighter attribute radar when applicable.
+For insights: use insightsData with the <AIInsights> component. If the component takes a list prop or if initialAiInsights was used inside it, adjust so it uses our insightsData. For example, if AIInsights expects a prop, use <AIInsights insights={insightsData} />. If it internally imports aiInsights, consider passing context or converting it to accept data; the simpler approach is to map insightsData to AIInsight cards directly in Dashboard’s JSX if needed.
+If the Dashboard shows a player card (e.g. “Top Prospect”), adjust it to use topPlayer from above rather than a hardcoded index of playerProspects. For example: <PlayerCard player={topPlayer} />. This ensures the player showcased is relevant to the selected game.
+The Strategy snippet on the dashboard: The Dashboard may include a strategy recommendation preview (using <StrategyRecommendation> and draftRecommendations for LoL). This doesn’t apply to Street Fighter (no draft phase in a 1v1 game). Enclose that section in a conditional so it only renders for League of Legends. For instance:
+jsx
+Copy
+{selectedGame === "League of Legends" && (
+  <StrategyRecommendation draft={draftRecommendations} /* other props */
+  />
+)}
+You can similarly provide an alternative note for Street Fighter if desired (or simply omit it). Since we’ll handle Strategy on its own page, it’s fine to omit the draft recommendation on the dashboard for non-LoL games.
+Update Page Header (optional but recommended): To make it clear which game’s dashboard we’re viewing, update the <PageHeader> on this page. The component likely takes a title and optional subtitle. Pass a subtitle indicating the game. For example:
+jsx
+Copy
+<PageHeader title="Dashboard" subtitle={`for ${selectedGame}`} />
+If the PageHeader is used, this will display “Dashboard – for Street Fighter” (or the selected game) at the top of the page. This helps contextualize the content.
+Result: After these changes, the Dashboard will dynamically show Street Fighter stats and insights when that game is chosen. If you switch to League of Legends, it will revert to using the original mock data (win rate, accuracy, etc. from the default). The UI layout (cards, charts) remains the same, but the content (text and numbers) changes per game. This demonstrates a contextual dashboard for each esports title.
