@@ -1,0 +1,272 @@
+Perfect — I’ll design an international leaderboard and badge system for SF6 inside EsportsAiScout that blends data from training progress, optionally CFN/tournament profiles, and AI-powered highlights. I’ll optimize for joyful, social UX and clear technical execution in Replit, so it actually works and wows the judges.
+
+# Community Leaderboards Design for EsportsAiScout (Street Fighter 6)
+
+The **Community Leaderboards** feature will add a vibrant competitive social layer to the EsportsAiScout app, turning solo training into a friendly international contest. Focusing on **Street Fighter 6 (SF6)** players, this system creates a **national/international training ladder** ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=5%29%20Community%20Leaderboards%20,Layer)) where users compete and connect through their training performance. The design emphasizes clarity, joy, and technical feasibility, aligning with judging criteria (UX, solution-fit, technical implementation) while capturing the **fighting spirit** of SF6. Below we detail each aspect of the feature, from the public leaderboard layout to AI-driven badges, social engagement hooks, technical implementation in a Replit React+TypeScript app, and the Street Fighter-inspired UI/UX touches that make it fun.
+
+## Public Leaderboard: Global Rankings and Smart Filters
+
+**Overview:** The public leaderboard will showcase top-performing users based on **training performance metrics** (like combo execution, reaction speed, adaptation skill) and optionally incorporate **SF6 online rank data** for broader context. It functions as an **online ranking board** for practice proficiency, much like SF6’s in-game ranked leaderboards ([Street Fighter 6 launches today, complete with companion site and more | BrutalGamer](https://brutalgamer.com/2023/06/02/street-fighter-6-launches-today-complete-with-companion-site-and-more/#:~:text=Resident%20Evil,stuff%20like%20each%20fighter%E2%80%99s%20moves)), but focused on training achievements. The goal is to **motivate users** by celebrating progress and fostering friendly competition across countries and characters.
+
+- **Ranking Criteria & Metrics:** Users are ranked primarily by an **overall training performance score**. This score can be a weighted composite of key metrics:
+  - *Combo Accuracy* – e.g. consistency in executing combos in drills (percentage of combos landed without drops) ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=Feature%3A%20%3EReal,accuracy%2C%20reaction%20time%2C%20move%20usage)) ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=rate%29.%20Overall%20win%20rate%2062,for%20that%20player)).
+  - *Reaction Time* – e.g. average time to react to AI prompts (like punishing or anti-airing) ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=Feature%3A%20%3EReal,accuracy%2C%20reaction%20time%2C%20move%20usage)) ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,airs)).
+  - *Adaptation Score* – an AI-derived metric indicating how well a player learns and adapts over time ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=Features%3A%20%E2%80%A2%20Score%20players%20on,execution%2C%20adaptation%2C%20and%20matchup%20awareness)) (for example, improving success after repeated attempts or adjusting strategy between rounds).
+  - *Other stats* – e.g. **training streak** (consecutive days of meeting training goals), **improvement rate** over the last weeks, etc. These emphasize growth and consistency, not just raw skill.
+  - Optionally, an **SF6 online rank tier** (Iron, Bronze, Silver, ... Master ([Street Fighter 6 - ranking system points league guide](https://www.redbull.com/int-en/street-fighter-6-ranked-system#:~:text=))) or player’s **CFN rating** could be shown to contextualize their experience level, if the user links their account. However, the primary ranking is based on training performance within the app, so even beginners can shine by improving rapidly.
+
+- **Global & Regional Competition:** To spark **national pride and rivalry**, the leaderboard is **filterable by country** ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=Features%3A%20%E2%80%A2%20Public%20rankings%20filtered,by%20country%2C%20character%2C%20and%20rank)). Players can see the **top in their country** and compare regions. A country filter (dropdown or flags) lets users toggle between *Global* rankings or specific nations. For example, selecting “🇯🇵 Japan” shows only Japanese players – encouraging local competition to be the best in that region. This creates a feeling similar to international tournaments, where being the top of your country is a badge of honor. The default view could highlight the **top 50 globally**, with an indicator for the highest-ranked player per country.
+
+- **Character-Based Filters:** The leaderboard can also filter by **character used ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=Features%3A%20%E2%80%A2%20Public%20rankings%20filtered,by%20country%2C%20character%2C%20and%20rank))8】. Each player may designate a “main” character for their training profile, and the filter lets users find, say, the best *Ryu* players or top *Chun-Li* specialists on the platform. This adds a fun layer for character loyalists – e.g. “Who is the #1 Juri player on AiScout?” – and fosters sub-communities and rivalry among character mains. It also helps players find others to learn from (e.g. a Cammy player might follow the top Cammy specialist’s progress).
+
+- **Tier/Rank Filters:** A **player tier filter** allows viewing rankings within certain skill brackets. This could correspond to **training tiers or SF6 ranks**. For instance, filter to “Gold Tier” to see only those whose *training score* puts them in Gold division, or filter by actual SF6 rank if integrated (e.g. see how all “Platinum” ranked SF6 players are doing in training). Internally, the app might assign training tiers (Bronze/Silver/Gold, etc.) based on performance to create divisions for fair comparison, analogous to SF6’s rank leagu ([Street Fighter 6 - ranking system points league guide](https://www.redbull.com/int-en/street-fighter-6-ranked-system#:~:text=))4】. This way, newcomers aren’t directly compared to veterans; they can climb within their tier and then advance.
+
+- **Leaderboard Entry Display:** Each entry on the leaderboard will be a **compact, info-rich card or row**. Key elements for each player:
+  - **Rank Position** – e.g. 1, 2, 3 … with a trophy icon for #1.
+  - **Username** – the player’s chosen display name. *(Privacy:* Users can opt to appear under an alias or “Anonymous” if they prefer. The system will encourage a fun nickname for social energy, but respects privacy by making public listing opt-in.) 
+  - **National Flag** – small flag icon next to the name for their country, emphasizing international participation at a glance.
+  - **Character Avatar** – an icon or portrait of their main SF6 character. This adds personality and lets others instantly recognize favorite characters. For example, a Ryu player might show a small Ryu face icon.
+  - **Key Stats Preview** – a quick glimpse of their performance metrics. For instance: *“Combo Accuracy: 92%”*, *“Avg Reaction: 0.30s”*, *“Adaptation: 85”*. We might also show *“Training Streak: 21 days”* or an *“Improvement index: +15%”* (indicating how much they’ve improved recently). Keep these to 2–3 highlights to avoid clutter; additional stats can appear on hover.
+  - **Badges** – small badge icons earned (more on this below). Display a few recent or highest-tier badges beside their name. Hovering or clicking can show the badge title (e.g. “Combo Master – Gold”).
+  - **Tier/Division** – if we use training divisions (e.g. Gold Tier), show an emblem or color indicating that. If actual SF6 rank is linked, could display “Diamond Rank” or similar as text or icon (like the SF6 rank badge).
+  
+  This information is arranged cleanly, e.g. as columns in a table or a stylized card. A row might look like: 
+
+  `1. 🇺🇸 **PlayerOne** (Ken) – Combo Acc 95%, React 0.25s, Adaptation 88 – 🥇Combo Master – Gold Tier`.
+
+  Color-coding can be used subtly: perhaps the background or border of the row is gold/silver/bronze for the tier, or use SF6’s UI colors (teal/green for Drive gauge themes). Tooltips on stats or badges can provide definitions (e.g. hover “Adaptation” shows “Measures how quickly you adjust strategy across rounds”). This ensures clarity even for users unfamiliar with a ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=All%20these%20features%20would%20be,missed%20attack%20from%20max%20distance%E2%80%9D))L537】.
+
+- **Username & Privacy Considerations:** To **balance social excitement with privacy**, the system will be **opt-in** for public display. Upon first using the app, a user can choose to **publish their profile** to the community leaderboard. They can set a username (which could be their gamer handle or a pseudonym) and select a flag (or let it pick via location). If a user opts out, their data might still contribute to aggregate stats (like country or character averages) but will not appear individually. Alternatively, users could appear anonymously (e.g. “Player#12345”) until they choose a name. This way, enthusiastic users fuel the competitive vibe, while privacy-conscious users aren’t exposed unwittingly. The app will make it enticing to join (e.g. “Your global rank: 120th – publish your profile so friends can find you!”), but ultimately gives control. No sensitive personal data is shown – just game-related stats and a chosen name/avatar, in line with **responsible data use**.
+
+- **Integration of SF6 Match Data (Optional):** If feasible, the leaderboard can incorporate official match data via **Capcom’s CFN/Buckler’s Boot Camp**. Capcom’s **Buckler’s Boot Camp** site provides player stats, match history and leaderb ([Street Fighter 6 launches today, complete with companion site and more | BrutalGamer](https://brutalgamer.com/2023/06/02/street-fighter-6-launches-today-complete-with-companion-site-and-more/#:~:text=Resident%20Evil,stuff%20like%20each%20fighter%E2%80%99s%20moves))1-L4】. By integrating via API or data scrape (where allowed), the app could pull a user’s SF6 rank, match win rate, or other info to enrich their profile. For example, showing *“Online LP: 15,200 (Diamond)”* or recent match streak. This would tie the training performance to real competitive outcomes, validating the training’s effect. However, this integration depends on data availability and permi ([end_goal.txt](file://file-UYqFRWMoG5xE2xWNzdnfLJ#:~:text=4))-L49】. For the core design, we assume the leaderboard runs primarily on training data we gather internally. The system is built to easily extend with external data later.
+
+In summary, the **Public Leaderboard** provides a **dynamic, filterable ranking** of users that can be sliced by country, character, and tier. It celebrates top performers and grinders alike, encouraging users to train harder and engage with the community. By seeing their name climb the ranks or their countrymen on the list, players get a sense of progression outside of just match wins. This addresses the **social motivation** aspect – much like how seeing one’s name on a competitive ladder drives engagement in other games, here it’s applied to the **training and improvement journey**.
+
+## AI-Powered Badge System: Celebrating Skills and Growth
+
+To add fun and **positive reinforcement**, the app will include an **AI-powered badge award system**. These **badges** serve as achievements or honors that **highlight a player’s skill improvements, habits, and milestones**. Unlike generic achievements, these are tailored by AI analysis of the player’s behavior over time, making them feel **personal and earned through skill**.
+
+**Badge Themes & Criteria:** The badges focus on key aspects of fighting game excellence and training dedication. Some example badges and how players earn them:
+
+- **🔥 Combo Master:** Awarded for consistently high combo execution. If the AI detects the user’s combo accuracy is above, say, 90% over a significant number of attempts, or they successfully land difficult high-hit combos, it grants *Combo Master*. It shows the player has excellent execution under pressure. Higher tiers (Silver/Gold) might require performing advanced combos or maintaining that accuracy in live matches. This badge encourages practicing execution relentlessly.
+
+- **⚡ Reaction King/Queen:** (Could be playfully named *“Clutch Reflexes”* or similar) Granted to players with exceptional reaction times. For example, always anti-airing jump-ins or teching throws with minimal delay. If a player’s average reaction time in drills (e.g., responding to a visual cue) is in the top 10%, or if they’ve improved their reaction significantly (e.g. from 0.4s to 0.25s), the AI rewards this badge. It celebrates those sharp reflexes pivotal in SF6’s high-speed fights.
+
+- **💡 Adaptation Ace:** Rewards players who show the ability to **adapt** their strategy over time. The AI can track patterns like win rate improvement from first attempt to subsequent attempts, or how a player changes approach after failures. For instance, if a player was struggling with a certain drill or matchup but gradually overcomes it (improvement trend in performance metrics), it signals strong adaptive learning. Similarly, if in sparring matches their Round 2 performance is much better after losing Round 1 (indicating “download complete” on the opponent), the AI not ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=,Round%201%20to%20Round%203))42-L50】. Earning *Adaptation Ace* means the player consistently learns from mistakes and counters opponents’ strategies over time – a hallmark of high-level play.
+
+- **💪 Training Warrior (or “Training God” for top tier):** A badge for dedication and consistency. Criteria could be finishing all daily training goals for a week straight, or having a long training streak (e.g. 30 days of activity), or completing a high number of AI drills. It could tier from *Training Enthusiast* (for a 7-day streak) up to *Training God* (for a 100-day streak, for example). This badge is about **commitment**: it turns practicing into an accolade. It’s great for motivating users to log in regularly and build habits.
+
+- **🎖️ Clutch King:** Awarded for performing exceptionally under pressure. The AI might look at scenarios like winning rounds with very low health or making comebacks from a deficit. If a player frequently wins the final round of a set after being tied, or if they have a high success rate in “last chance” situations (e.g. one hit from losing, but they clutch out a win), they earn *Clutch King*. It reflects mental fortitude and clutch factor – exciting traits to celebrate. For training drills, perhaps if there’s a mode where they have one last try and succeed, that could count too.
+
+- **🌟 Legend** (or **Epic Legend**): This would be a **special elite badge** granted by the AI for overall excellence. It could be tied to reaching the very top of the leaderboard or achieving top 1% in multiple metrics. Essentially, *Legend* might require the player to consistently demonstrate mastery across the board – high execution, high adaptation, top tier rank, etc. This badge is rare and might come in only a gold flavor – a status symbol that this player is among the best of the best (an “AiScout Legend”). The specs hinted at badges like “Epic” or “Legend” for ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=Features%3A%20%E2%80%A2%20Public%20rankings%20filtered,by%20country%2C%20character%2C%20and%20rank))6†L65-L68】, which would fit here as ultimate goals.
+
+- **Other Badge Ideas:** We can continually expand badges via AI insights. For example: *“Perfect Guard”* for someone with exceptional **parry** or **block** rates, *“Grappling Guru”* if the AI sees they excel against grappler characters, *“Combo Lab Scientist”* if they explore many different combos or characters in training, or fun ones like *“Hadoken Specialist”* if they throw an absurd number of fireballs (just for laughs). The key is that the AI can detect patterns (“you really like fireballs!”) and turn them into positive achievements. This keeps things lighthearted and encourages exploring playstyles.
+
+**AI Detection and Award Logic:** The badge system runs on the **scouting AI** continuously analyzing player data. It looks for both **threshold achievements** (hitting a certain stat) and **behavior patterns** over time:
+- The AI maintains running metrics for each player (e.g. combo success rate, reaction time average, times they clutch wins, improvement trajectory). Many of these are already tracked for performance; the badge module just needs to set conditions for each badge.
+- When a metric crosses a threshold or a particular pattern is recognized, the system awards the badge. For example, as soon as combo accuracy first averages 90% in a session, *Combo Master (Bronze)* badge is unlocked.
+- Some badges might require consistency: e.g. maintain a stat for several sessions before awarding (to prevent flukes). The AI can confirm the pattern holds over time before granting higher-tier badges.
+- All badge criteria will be defined clearly in the code (and perhaps hinted to users as goals). We might use an object like: 
+  ```ts
+  const badgeCriteria = {
+    comboMaster: { stat: 'comboAccuracy', thresholds: [80, 90] }, 
+    // 80% = bronze, 90% = silver, etc.
+    trainingStreak: { stat: 'daysInRow', thresholds: [7, 30, 90] }, 
+    // e.g., 7 days = bronze, 30 = silver, 90 = gold
+    // ... and so on
+  };
+  ```
+  The AI periodically checks these conditions against the player’s data. This is computationally light given the small user base in a prototype (and can be optimized or triggered on data updates).
+
+- **Badge Tiers & Visual Design:** Each badge will have **levels** to encourage continued progress. A common scheme: **Bronze, Silver, Gold** (and possibly Platinum for ultra-elite) – or even a color coding like Street Fighter belts (just conceptually). For instance, *Combo Master* Bronze at 80%, Silver at 90%, Gold at 95%. A user can level up their badge as they improve, which is more motivating than a one-and-done achievement. Visually, the badge icon could change color or get a small star to indicate level. Alternatively, an **emoji-based** tiering could be fun: e.g. one 🔥 for bronze, two for silver, three for gold on the badge icon, or using 🥉🥈🥇 medals.
+  
+  The **badge icons** themselves should be visually appealing and thematic. They could be stylized fighting game icons or cute renditions of the concept:
+  - A fist or combo hit-spark icon for *Combo Master*,
+  - A lightning bolt or eyes for *Reaction/Reflex*,
+  - A brain or lightbulb for *Adaptation Ace*,
+  - A training dummy or dumbbell for *Training Warrior*,
+  - A crown or clutch trophy for *Clutch King*,
+  - A legendary fire dragon or simple star for *Legend*.
+  
+  These should be small but distinct, shown next to the username on the leaderboard and on the user’s profile. We will ensure they look good at small sizes (simple shapes, high contrast). When a new badge is earned, the UI will celebrate it (e.g. a popup “🏆 New Badge Unlocked: Combo Master (Silver)!” with a brief description). This moment of joy reinforces positive behavior. The badges also appear on the profile page as a collection, encouraging the “gotta catch ’em all” feeling for training achievements.
+
+**Badge Display and Social Impact:** Badges will not only reward the individual, but also act as **social signals**. On the leaderboard or profile, seeing someone with a *“Legend”* badge or many gold badges instantly conveys respect – they must be a dedicated and skilled player. It creates **aspirational targets** for others (“Wow, that player has Gold Combo Master, I want to get that too!”). By focusing on growth-oriented badges (not just win count), even mid-level players can earn badges for improving, which keeps them engaged. The AI ensures badges are awarded fairly and with some *surprise and delight* (since some are based on subtle patterns, it can feel magical when you receive one unexpectedly: “The AI noticed I’ve gotten way better at anti-airs and gave me an *Anti-Air Ace* badge!”). This system thus leverages AI not just for analysis, but for **motivation and fun**, adding a gamified layer to practicing.
+
+## Social Layer & Community Engagement Features
+
+Beyond the leaderboard and badges, several **UI features will amplify engagement** and cultivate a community feel. The aim is to turn solitary training into a shared experience, leveraging **competition, collaboration, and recognition** to keep users coming back. Here are key social features and gamified elements:
+
+- **Monthly Challenges & Events:** Introduce rotating challenges that all users can participate in. For example, *“April Combo Challenge: land 500 combos in training mode this month”* or *“Speed Demon Challenge: achieve a reaction time under 0.2s”*. A dedicated banner or section on the leaderboard page can show the challenge and maybe a progress bar of the community or personal progress. Top performers in the challenge (or anyone who achieves the goal) could get a special badge or be listed in a “Hall of Fame” for that month. This creates fresh objectives regularly so the content stays lively. It also encourages players to log in and check progress (“Only 50 more combos to complete the April challenge!”). Challenges could be themed (maybe something like “Shadaloo Showdown – defeat M. Bison AI 100 times”) to keep with SF lore for extra flavor.
+
+- **Player Spotlight / Highlights:** Each week or month, the app can spotlight certain players on the leaderboard. For instance, *“Player of the Week”* who climbed the most ranks or showed remarkable improvement. Or *“Rising Star: JaneDoe (🇬🇧) improved her adaptation score by +20% this week!”*. These spotlights can be shown at the top of the leaderboard or in a side panel, possibly with a profile card and a short note on their accomplishment. Another idea is a *“Featured Match/Replay of the Week”* (if replay data is integrated) where a high-level training match or a cool combo video from a user is highlighted. Recognizing users in this way builds personal connection – people love seeing community members celebrated, and it motivates others (“Maybe if I work hard, I’ll get featured next!”). It also humanizes the leaderboard beyond just numbers.
+
+- **Hover-over Stat Cards:** To provide more depth without cluttering the main view, we implement rich hover tooltips or expandable rows. When you hover or click on a player’s name, a **mini profile card** pops up showing more details:
+  - Their full set of stats (all metrics, maybe a mini radar chart comparing them to the global average).
+  - A list of all badges earned (with descriptions).
+  - Perhaps their favorite character matchup or a recent achievement (e.g. “Best Combo: 15-hit, 480 damage”).
+  - A “Follow” or “Challenge” button (see below).
+  
+  This allows curious users to scout others in detail, much like checking a player’s profile on an online game. It uses space efficiently via overlay. The design will ensure the card is easy to read (semi-transparent background over the leaderboard, or a card that pushes other rows down briefly). This feature makes the leaderboard interactive and informative – not just a static list, but a gateway to learning about peers. Judges or coaches using the app can quickly inspect a player’s strengths this way too.
+
+- **Follow & Challenge Peers:** We add simple social networking features such as **following** a player. If you see someone high on the leaderboard or with similar interests (say, another Juri main from your country), you can **“Follow”** them. Following could simply bookmark them in a “Following” tab where you can easily find their profile/stats later, or enable notifications (“Your rival JohnDoe just surpassed your score!”). This fosters friendly rivalries. **Challenge** functionality could allow you to send a direct challenge: e.g. “Train harder and beat my combo record” or invite them to a 1v1 sparring match in training mode if that exists. While complex real-time features might be beyond an initial prototype, we can simulate it by, for example, comparing stats: clicking “Challenge” could pop up a comparison of your stats vs. theirs with highlighted areas to beat (almost like a ghost in racing games). Or simply it could send them a notification “X has challenged you to reach 95% combo accuracy by next week”. Even without real-time battles, just the notion of issuing a challenge makes the interaction personal. These features make users feel part of a community, not just competing against a scoreboard.
+
+- **Community Feed or Comments:** (Optional stretch) A lightweight way for players to interact – a comment wall or feed where players can post short messages or tips when they achieve something. For example, after earning a badge, it could auto-post “Alice earned Combo Master – Gold! 🔥”. Others could react with a thumbs-up or “gg” (good game). This isn’t a full social media, but a simple feed on the leaderboard page can make the app feel alive and communal. Moderation and safety would need to be considered, so initially it might be one-way (system-generated highlights only). Over time, perhaps a **“cheer”** feature where you can send an emoji to congratulate someone on a milestone, which they see on their profile (non-invasive but encouraging).
+
+- **Regional and Character Pride:** We can gamify the regions and characters, not just individuals. For example:
+  - **Country Leaderboard or Points:** Aggregate points by country (sum of top X players’ scores) and display a mini leaderboard of countries. “🏴󠁧󠁢󠁳󠁣󠁴󠁿 UK is currently #1 in training performance this month, with USA and Japan close behind!” This could spark friendly nationalism, motivating players to represent their country. We could even have *Regional Championships* events where the country with the most active training or highest average improvement wins that month’s title.
+  - **Character Popularity/Performance:** Show fun stats like “Ken mains dominating Asia this week” or “Chun-Li players have the highest average adaptation score”. This leverages the data we have to create engaging tidbits (similar to how the official SF6 s ([Buckler Boot Camp - Street Fighter 6 - GameFAQs](https://gamefaqs.gamespot.com/boards/358511-street-fighter-6/80464406#:~:text=For%20Street%20Fighter%206%20on,What%20do))aracter usage stats). A small sidebar could cycle through such facts, giving players a sense of the broader community trends and maybe prompting them to try new characters (“Wow, Marisa players are on fire, maybe I should see what the hype is”). It’s both informative and entertaining.
+
+- **Top Climbers & Newcomers:** Dedicate a section for **fast risers** – those who jumped many ranks in the last week. Label it “Top Climbers of the Week” with green upward arrows and how many spots they gained. This gives recognition to improving players, not just the static top 10. Conversely, a friendly nudge could highlight “Don’t give up!” to those who dropped (though we might avoid pointing out drops to keep things positive). Another section could welcome **new entrants**: “🎉 Welcome new fighters: PlayerX, PlayerY, …” if they joined the leaderboard. This makes newbies feel seen and encourages them to stick around.
+
+- **In-App Notifications & Emails:** To sustain engagement, the app can send notifications like “You’ve moved up 5 places on the leaderboard!” or “Only 2% more combo accuracy to reach Combo Master (Gold) badge.” This ties the social and badge systems together to continually pull the user back in with goals and rewards.
+
+All these social features are designed with a **lightweight touch** – they add excitement without demanding complex new infrastructure. Many can be implemented with the data we already gather and simple UI elements (e.g., calculating top climbers is just comparing last week’s ranks vs now). The result is a **community hub** within the app that transforms practice into a shared journey. Users will not only strive to improve for themselves but also enjoy the camaraderie and competition, which in turn drives retention and **“social stickiness”** of the platform.
+
+## Technical Implementation Plan (Replit React + TypeScript)
+
+Implementing the community leaderboards and badge system in a **Replit** environment requires careful structuring of data, UI components, and possibly a simple backend. We aim for a **functional prototype** with mock data to demonstrate the concept, optimizing for clarity and ease of iteration. Below is a plan covering data models, component structure, logic, and a Replit-friendly approach:
+
+**1. Data Models & Sample Data:** We will define JSON structures to represent players, leaderboard entries, and badge definitions. For simplicity, this can be a static JSON file or an in-memory object (later replaceable with Replit’s persistent DB or an API).
+
+- **Player/Leaderboard Entry Schema:** Each player entry might look like:
+  ```json
+  {
+    "id": "player123", 
+    "username": "KenMaster99",
+    "country": "USA",
+    "countryFlag": "🇺🇸",
+    "character": "Ken",
+    "rankTier": "Gold",       // training rank or SF6 rank
+    "comboAccuracy": 92,
+    "reactionTime": 0.28,    // in seconds (average)
+    "adaptationScore": 85,   // AI-derived score 0-100
+    "trainingStreak": 14,    // days
+    "improvementScore": 12,  // % improvement in last month
+    "badges": [
+       {"name": "Combo Master", "tier": "Gold"},
+       {"name": "Training Warrior", "tier": "Silver"}
+    ]
+  }
+  ```
+  An array of such objects represents the leaderboard. We might also keep a separate list of badge definitions with criteria (for internal logic, not needed in JSON if logic is hardcoded).
+
+- **Replit Database (Optional):** For a persistent store, Replit provides a key-value store accessible via their `@replit/database` package. For example, we could use a key `"leaderboard"` to store the array of players. However, for a demo, simply hardcoding the data in a JSON or TS file (e.g. `players.ts`) is fine. We can simulate updates by modifying the data structure.
+
+- **Data Updating:** If we were to integrate this with the actual training features, the training module would update each player’s stats after sessions. For now, we can create a function to randomly improve some stats periodically to simulate movement (so we can show dynamic ranking changes if needed).
+
+**2. Leaderboard Logic (Ranking & Filtering):** The core logic involves sorting and filtering the list based on user selections.
+
+- We will compute an **overall score** for ranking. This could be as simple as a weighted sum of normalized metrics (e.g., each metric scaled 0-100, then `score = comboAcc*0.4 + reactionScore*0.3 + adaptation*0.3` as an example). Or, since the question leaves it open, we can just sort by a primary metric like `adaptationScore` or `improvementScore`. A balanced approach is best so that all-around players rank higher than one-trick ponies. We’ll implement this in JS/TS so it’s easy to tweak weights.
+
+- **Sorting:** On initial load, sort the players by the chosen ranking formula. This gives the global order. If filters are applied, we filter first then sort the subset (or sort globally then filter, which yields the same order within the subset).
+
+- **Filtering:** Implement filters for country, character, and rank:
+  - For country, we can have a dropdown populated by all countries present in the data (plus “All”). Filtering means `players.filter(p => filterCountry === "All" || p.country === filterCountry)`.
+  - Character filter similarly goes through `p.character`.
+  - Rank filter checks `p.rankTier` or perhaps a derived tier if we define our own training divisions.
+  We can combine filters easily (e.g. if country = USA and character = Ryu, apply both conditions).
+  In React state, we maintain `filterCountry`, `filterChar`, `filterRank` as states, defaulting to "All". On change, recompute the filtered list.
+
+- **Pagination or Lazy load:** If the list is long (hundreds of players), we might paginate or virtualize. For a prototype, a simple list of top N (say 50) is fine. Replit can handle rendering that easily.
+
+- **Username opt-in handling:** We might include an `isPublic` flag in player data; our filtering logic would simply exclude any entry with `isPublic: false` from the displayed list. That way, non-opt-in players are never shown.
+
+**3. React Component Structure:** A modular approach ensures clarity:
+  - `<LeaderboardPage>` – the main container component for this feature. It holds state for filters and possibly the list of players (or fetches from context/store).
+  - **Filter Components:** e.g. `<CountryFilter>` , `<CharacterFilter>`, `<RankFilter>` – each can be a simple `<select>` dropdown internally. Or combine them into one `<FiltersBar>` component for convenience. They will call a handler in `LeaderboardPage` to update filter state.
+  - **Leaderboard Display:** We could use a table or a custom list. A **table** (`<table>`) is natural for rows of data. Alternatively, a flexbox list of card components.
+    - If table: a `<thead>` with headings (Rank, Player, Country, Character, Stats, Badges, etc), and a `<tbody>` with rows. Each row could be a component `<LeaderboardRow>` that takes a player object as prop and renders the columns.
+    - If cards: `<LeaderboardEntryCard>` styled component showing the info, repeated for each player.
+  - **LeaderboardRow/Entry:** This component assembles the data for one player:
+    - Renders rank (maybe passed separately once the list is sorted, or the index in map can serve as rank if 0-index +1).
+    - Renders flag (we can use the country unicode emoji from data as shown above, or use an image sprite if we have one).
+    - Name and maybe onClick event to show profile modal.
+    - Character – possibly text + an icon. We might prepare a mapping of character names to an image or emoji. (For prototype, even text is fine. Later we could import small character art.)
+    - Stats – likely as one combined cell. We can format the key stats like `⚡0.28s | 🔥92% | 💡85` with tooltips explaining each symbol. Using icons (emoji or FontAwesome if available) can save space and add flair.
+    - Badges – could map the badges array to badge icons. We might create a `<BadgeIcon>` component that given a badge name and tier returns the appropriate styled icon element (maybe an `<img>` or an emoji). Each icon should have an `alt` or tooltip for accessibility (“Combo Master – Gold Level”).
+    - Optionally a “△2” or “▽1” symbol if we show rank change (if we store previous rank).
+  - **Profile Hover/Modal:** We can implement the hover card using a conditional rendering. For example, in LeaderboardPage state, have something like `hoveredPlayerId` and when set, position a `<PlayerCard>` component near the cursor or at the row. Simpler: clicking a row could set `selectedPlayer` state and render a `<ProfileModal>` (a popup) with that player’s detailed info. Given time constraints, a modal on click is easier than a hover that needs to track mouse position.
+    - `<ProfileModal>` can show more stats, maybe a chart. We could use a lightweight chart library or just HTML canvas for a simple chart, but even a list of stats is fine. It can reuse the badge component to list all badges with names. Also a follow/challenge button (which for now might just trigger an alert “Challenge sent!”).
+  - **Misc Components:** If doing monthly challenges or special sections, those could be their own components (like `<MonthlyChallengeBanner>` and `<Spotlight>`). Initially, we might hardcode a banner in LeaderboardPage with dummy text (e.g. a nice `<div>` styled with a background image and some text about the challenge).
+
+**4. State Management:** We can keep it simple with React `useState` hooks for filters and selection. The list of players can live in state or a context. Because we might simulate updates (like someone’s stats changing), it might be convenient to have it in state and a function that updates a player entry (to then resort the list). Sorting and filtering can be done on the fly in render, but for efficiency we might memoize it. Given moderate data size, straightforward re-filter on each render is okay.
+
+**5. Badge Award Logic Implementation:** In a real app, the AI running on the backend would assign badges and update the database. In our prototype, we can implement a simple function `assignBadges(player)` that checks the player’s stats and pushes badge objects into their `badges` array accordingly. This can run at load for all mock players (so the sample data has appropriate badges), or be triggered whenever a player’s stats update.
+   - For example: 
+     ```ts
+     function assignBadges(p: Player) {
+       if (p.comboAccuracy >= 80) p.badges.push({ name: "Combo Master", tier: p.comboAccuracy >= 90 ? "Silver" : "Bronze" });
+       if (p.trainingStreak >= 7) p.badges.push({ name: "Training Warrior", tier: p.trainingStreak >= 30 ? "Silver" : "Bronze" });
+       // ... etc for other badges
+     }
+     ```
+     This logic can be refined or replaced with more complex analysis, but it demonstrates the idea. We ensure to avoid duplicate badges (upgrade instead of duplicate entries if criteria met again).
+   - The badge criteria can also be stored in a config object as mentioned, and looped over to reduce hardcoding.
+
+**6. Backend Considerations:** Replit might not have a full backend server unless we set one up (like using a Flask or Node Express within the Replit). However, since this is a front-end heavy feature, we can manage with just the React front-end and perhaps use Replit DB for persistence. If we wanted to simulate a multi-user environment, we could have certain routes (API endpoints) in a tiny Express server (within Replit) to fetch or update leaderboard data. But that might be overkill for a demo. Instead, assume the app is single-user oriented but showcases a leaderboard of many (simulated) users.
+   - For multi-user real usage, each client could pull the latest leaderboard from a common data source. On Replit, a simple approach: use a public Google Sheet or a JSON bin as a faux API, but offline, we skip that.
+   - We will clearly separate data and presentation, so swapping the data layer later is easy.
+
+**7. Replit-Ready Prompt (Code Scaffold):** We can leverage Replit’s AI tools or simply craft our code based on a prompt. For example, an AI prompt to generate the leaderboard component structure might be:
+
+```markdown
+**Replit Code Generation Prompt:** 
+
+"Create a React + TypeScript project for a Street Fighter 6 training leaderboard. Include:
+- A data file (or state) with an array of player objects (fields: username, country, character, rankTier, comboAccuracy, reactionTime, adaptationScore, trainingStreak, improvementScore, badges).
+- A Leaderboard component that shows a table of the top players. Columns: Rank, Name (with country flag and character), key stats (combo accuracy, reaction, adaptation), and badges.
+- Dropdown filters for country, character, and rank that filter the displayed players.
+- Badge icons or labels next to each player (e.g., 'Combo Master', 'Adaptation Ace' etc.) with different colors for Bronze/Silver/Gold tier.
+- A modal or expandable section to show a player's full stats and badges on click.
+- Use simple CSS to style it with a Street Fighter vibe (e.g., bold fonts, maybe a background image or themed colors).
+- Include sample data for at least 5–10 players to demonstrate functionality.
+Ensure the code is well-structured (multiple components) and commented."
+
+```
+
+This prompt can be used in Replit's Ghostwriter to scaffold the initial codebase. Of course, we would refine the output, but it gives a head start. The structure will include components as described, and we’ll add styling and imagery as needed.
+
+**8. Libraries & Assets:** For flags, we can use Unicode emoji as shown (they render well in most browsers for country flags). For character icons, if available, we might include small image files. Otherwise, text is fine. We will use standard React and possibly a UI library for convenience (even something like Chakra UI or Material UI could speed up making a nice table and modal). However, given the custom theme we want, likely we’ll do custom CSS or styled-components to get the SF feel. Animations (like rank change arrows) can be done with CSS transitions or a library like Framer Motion if time permits.
+
+**9. Testing & Iteration:** On Replit, we can easily live preview. We will test filter interactions, ensure the sorting works, and that the UI scales for different screen sizes (it should be mobile-friendly if possible, given players might check on their phones). Replit’s always-on nature means we can share the prototype link with others (like judges) to try out.
+
+By following this plan, the implementation will result in a functional prototype of the Community Leaderboards. It will demonstrate the key ideas – a working filterable leaderboard, visible badges, and dynamic data updates – in a way that’s realistic yet achievable within a short timeframe. The architecture is kept simple intentionally, focusing on **front-end experience**, since that’s crucial for the UX judging, while leaving hooks to integrate actual data or more complex logic later on.
+
+## Joyful SF6-Inspired UI/UX Design
+
+Finally, to truly deliver on **“joy, vibes, and beauty”**, the user interface will draw inspiration from Street Fighter’s flashy style and the excitement of competition. We want every interaction – viewing the leaderboard, earning a badge, climbing ranks – to feel rewarding and aligned with the fighting game theme. Below are the key UX elements and aesthetic choices:
+
+- **Street Fighter Theming:** The color scheme and typography will echo SF6’s design. SF6’s branding uses bold colors like **energetic orange, electric blue, and neon green** (especially around the Drive Gauge UI). We can incorporate these as accent colors – e.g. green bars or highlights for positive progress (like the Drive gauge color), orange for headings or important text (like SF6 logo accents), and perhaps a dark background or textured backdrop reminiscent of a stage. A subtle watermark of a SF6 stage or characters (low opacity) could be in the background. We must avoid any copyrighted art in a final product, but we can use the general style (e.g. brushstroke effects, splattered paint motifs which SF is known for in UI). For text, we might use a clean but bold font for names, and possibly a stylized font for headings (something that feels like the SF title font without copying exactly). The key is to make the app immediately scream “fighting game vibe” rather than generic business dashboard.
+
+- **Animations & Transitions:** Dynamic visual feedback will make the leaderboard feel alive. For example:
+  - When the leaderboard updates (say a new ranking calculation), entries could **slide** into their new positions with a smooth animation rather than jumping. A player who moves up might have their row highlighted briefly in green and slide up, maybe with a small upward arrow icon animating upward – giving a sense of motion and achievement.
+  - Earning a badge triggers a **celebratory animation**: perhaps a brief full-screen overlay with the badge icon spinning in, a la “New Challenger!” splash. It could even play a short sound (like the classic SF “Level Up” chime or a KO sound) to cement the moment – though sound in a web app is optional.
+  - Hover interactions: hovering over a row could subtly enlarge it or glow to indicate it’s clickable. The pop-up profile card can fade in or flip like a card.
+  - Using **Street Fighter SFX or motifs**: For example, an animation of a fiery **“KO!”** or **“Rank Up!”** text appearing when someone reaches #1 or moves to the next tier. We can animate text with CSS keyframes to mimic the game (like flashing or shaking text).
+  - If feasible, incorporate **small particle effects**: e.g. confetti or sparks when challenges are completed, or a punch impact effect behind a badge icon when it appears.
+
+- **National Highlights:** When filtering by country or viewing country stats, use **national colors or symbols** to augment the design. For instance, if viewing the USA leaderboard, the header bar might have a faint stars-and-stripes motif; if viewing Japan, perhaps a subtle red circle motif (rising sun). This adds pride and personalization to the view. Flags are already shown for each player; we can also display the country name with a stylized font in the background when a country filter is active (like a watermark text “JAPAN” semi-transparent behind the list). These little touches rally users around their region.
+
+- **Encouraging Community Messages:** We’ll include a dynamic text marquee or ticker on the leaderboard page that rotates through encouraging messages and highlights. For example, at the top or bottom of the page a line might scroll: *“📣 Nigeria is climbing fast this week – up 3 spots in average score!”* or *“Ken mains dominating Asia: 5 Kens in the Top 10!”* or *“New record: ComboQueen (🇫🇷) hit a 25-hit combo!”*. These messages can be auto-generated from data or manually set for flavor. They create hype and a sense that things are happening all the time. We can style this ticker like a news feed, perhaps with a small loudspeaker or fire icon. Importantly, the tone is celebratory and inclusive – focusing on positive trends (“X is doing great”) rather than negative (“Y fell off”). Over time, players might look forward to seeing their name or region mentioned in these highlights.
+
+- **Visual Gamification Elements:** Represent progress visually wherever possible:
+  - Use **XP bars or progress circles** for things like “XP to next rank” or “progress this week”. For instance, each player’s entry could show a small progress bar indicating how close they are to the next tier (if we define that numerically). Filling that bar could be deeply satisfying, especially if it animates when they gain points.
+  - Up/down movement indicators: as noted, green ▲ or red ▼ next to the rank number if they moved since last week. Maybe also a number like “▲ +5” if they rose 5 places. These indicators can update weekly and then persist for that week. It gives context to the ranking (someone at #10 who climbed from #30 is hot right now!).
+  - **Character Avatars with personality:** If we include small character images, they could be given a slight CSS animation – e.g. a bounce or shake – when that player is highlighted. Alternatively, we could use stylized character silhouettes behind the rows to decorate (e.g. a faint Ryu silhouette in the row background for a Ryu player).
+  - **Color Coding and Icons:** We will use intuitive icons and colors: gold/silver/bronze colors for tier, distinct icons for each stat (⚔️ for combos, 🛡️ for defense/adaptation, ⏱️ for reaction, 🔥 for streak or momentum). This makes the info digestible at a glance, as the user can scan for icons rather than reading every label.
+
+- **Positive UX Writing:** The language in the UI will be upbeat and in-theme. Instead of a dull “Leaderboard (Global)” title, we might say **“World Warriors Leaderboard”** (a nod to SF2’s World Warrior). The filter titles could be “Filter Fighters:” rather than plain text. When no one meets a filter, say “No warriors found.” Little flavorful phrases keep the tone fun. The badge descriptions too will be written playfully (“Your anti-air game is on point! Enemies take to the skies at their peril.” for an anti-air badge, for example).
+  - Community messages (like the ticker) as mentioned will call out users and countries in a proud way. We might also include a random motivational quote at times (“Train hard, fight easy!” or a famous quote from Ryu or Chun-Li).
+  - Notifications or pop-ups will congratulate: “Congratulations! You’ve unlocked **Clutch King** badge!” rather than just “Badge unlocked.” This ties into UX writing making the user feel good.
+
+- **Responsive and Accessible Design:** Joy isn’t only visuals, it’s also a smooth experience. The UI will be tested on different screen sizes – the design should collapse nicely on mobile (maybe the table becomes cards stacked vertically). We’ll use clear contrast for text (maybe light text on a dark background which is typical for SF style, but ensure it’s readable). We’ll also provide alt text for icons and consider screen-reader labels so that even if someone has accessibility needs, the leaderboard is navigable (this is part of good UX).
+  - Tooltips for jargon ensur ([street_fighter.txt](file://file-KgiKGGkCRoHnLtUHz4uoxj#:~:text=All%20these%20features%20would%20be,missed%20attack%20from%20max%20distance%E2%80%9D))ren’t lost, as noted earlier. If a term like “DP” or “V-Trigger” sneaks in (perhaps in a badge name), we clarify it.
+
+- **Overall Aesthetic:** Imagine opening the app and seeing a **vibrant dashboard** where the leaderboard is not just numbers, but feels like an **e-sports overlay** or a **fighting game menu**. We might draw inspiration from SF6’s own menus (which have moving background animations, bright colors, and character artwork). Perhaps have a subtle looped background video of a SF6 stage or just abstract swirling colors. Even the borders and dividers can be stylized (for example, use a jagged line or punch impact line instead of a plain straight line).
+
+In combination, these UI/UX choices ensure the feature is **not a dry leaderboard but a lively, game-like experience**. We want users to smile when they see their avatar with a new badge, or feel a rush when the screen flashes “Level Up!” as they move to the next tier. By blending the **competitive atmosphere of fighting games** with modern web design practices, the Community Leaderboards will not only function well but also exude the **joy and hype of an arcade**, keeping users both engaged and delighted.
+
+## Conclusion
+
+The **Community Leaderboards** feature brings together all these elements – global ranking, AI-driven badges, social interaction, robust implementation, and joyful design – to create a compelling competitive layer for EsportsAiScout’s Street Fighter 6 module. It transforms training data into a **social game**: players will train harder because they want to climb the ladder, earn that next badge, represent their country, and get noticed by the community. The design is rooted in solid technical planning (simplified for Replit prototyping) and aligned with the *challenge objectives* of excellent UX, innov ([specifications.txt](file://file-369ib3bvczGgusWAFL4DXC#:~:text=5%29%20Community%20Leaderboards%20,Layer)) AI, and clear implementation. By focusing on both **functional clarity** (filters, data accuracy, easy navigation) and **emotional impact** (SF6-themed excitement, recognition of improvement), this feature is set to deliver a **joyful user experience** that resonates with fighting game enthusiasts and newcomers alike. It’s not just a leaderboard – it’s a **World Warrior training arena** where everyone can be inspired to become a champion. 
+

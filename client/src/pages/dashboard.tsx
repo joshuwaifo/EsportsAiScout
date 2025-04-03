@@ -10,6 +10,7 @@ import PlayerCard from "@/components/scouting/PlayerCard";
 import StrategyRecommendation from "@/components/strategy/StrategyRecommendation";
 import ReplayHighlightGenerator from "@/components/dashboard/ReplayHighlightGenerator";
 import FighterTerminologyGlossary from "@/components/dashboard/FighterTerminologyGlossary";
+import PersonalizedTrainingPlan from "@/components/training/PersonalizedTrainingPlan";
 import { 
   StrategyGenerationDialog, 
   exportTeamData 
@@ -345,6 +346,13 @@ export default function Dashboard() {
               {selectedGame === "Street Fighter" && (
                 <div className="mt-8">
                   <ReplayHighlightGenerator />
+                </div>
+              )}
+
+              {/* Street Fighter Personalized Training Plan */}
+              {selectedGame === "Street Fighter" && (
+                <div className="mt-8">
+                  <PersonalizedTrainingPlan />
                 </div>
               )}
 
