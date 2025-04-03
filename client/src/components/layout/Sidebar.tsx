@@ -11,7 +11,8 @@ import {
   GamepadIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CheckIcon
+  CheckIcon,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGame } from "@/context/GameContext";
@@ -35,6 +36,7 @@ export default function Sidebar() {
     { name: 'Scouting', href: '/scouting', icon: SearchIcon },
     { name: 'Strategy', href: '/strategy', icon: BrainIcon },
     { name: 'My Team', href: '/team', icon: UsersIcon },
+    { name: 'Leaderboard', href: '/leaderboard', icon: LayoutDashboardIcon },
     { name: 'Coach Q&A', href: '/coach', icon: MessageSquareIcon },
     { name: 'About', href: '/about', icon: InfoIcon },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },

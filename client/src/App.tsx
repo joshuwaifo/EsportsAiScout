@@ -9,6 +9,7 @@ import Strategy from "@/pages/strategy";
 import Team from "@/pages/team";
 import About from "@/pages/about";
 import CoachQA from "@/pages/coach";
+import LeaderboardPage from "@/pages/leaderboard";
 import { CoachProvider } from "@/context/CoachContext";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { MatchProvider } from "@/context/MatchContext";
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/strategy" component={Strategy} />
       <Route path="/team" component={Team} />
       <Route path="/coach" component={CoachQA} />
+      <Route path="/leaderboard" component={LeaderboardPage} />
       <Route path="/about" component={About} />
       <Route component={NotFound} />
     </Switch>
