@@ -166,7 +166,7 @@ const dailyDrills: Drill[] = [
     completionTime: 15,
     completed: true,
     type: "video",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    videoUrl: "https://www.youtube.com/watch?v=p8ZBNMgIbR0"
   },
   {
     id: 3,
@@ -226,7 +226,7 @@ const weeklyDrills: Drill[] = [
     completionTime: 30,
     completed: false,
     type: "video",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    videoUrl: "https://www.youtube.com/watch?v=p8ZBNMgIbR0"
   },
   {
     id: 7,
