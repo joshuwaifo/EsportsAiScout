@@ -317,7 +317,7 @@ const MoveInputGuide: React.FC = () => {
                     {/* Input Visualization */}
                     <div className="flex items-center justify-center gap-2 py-3">
                       {selectedMove.inputs.map((input, index) => (
-                        <React.Fragment key={index}>
+                        <div key={index} className="flex items-center">
                           <div className="flex flex-col items-center">
                             <div className="w-12 h-12 bg-primary/20 border border-primary/50 rounded-md flex items-center justify-center text-2xl">
                               {renderInputIcon(input.icon)}
@@ -327,7 +327,7 @@ const MoveInputGuide: React.FC = () => {
                           {index < selectedMove.inputs.length - 1 && (
                             <ChevronRight className="h-6 w-6 text-gray-500" />
                           )}
-                        </React.Fragment>
+                        </div>
                       ))}
                     </div>
                     
