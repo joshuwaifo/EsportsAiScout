@@ -93,25 +93,6 @@ const SF6_RANKS = [
   "Rookie", "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master"
 ];
 
-// Initial data for the teams
-const initialBlueTeam: TeamProfile = {
-  id: 1,
-  name: "Blue Team",
-  members: [],
-  strengths: [],
-  weaknesses: [],
-  overallSkill: 0
-};
-
-const initialRedTeam: TeamProfile = {
-  id: 2,
-  name: "Red Team",
-  members: [],
-  strengths: [],
-  weaknesses: [],
-  overallSkill: 0
-};
-
 // Character avatar URLs for common SF6 characters
 const characterAvatarUrls: Record<string, string> = {
   "Ryu": "https://www.streetfighter.com/6/assets/images/character/ryu/ver01/face.png",
@@ -135,6 +116,146 @@ const characterAvatarUrls: Record<string, string> = {
   "A.K.I.": "https://www.streetfighter.com/6/assets/images/character/aki/ver01/face.png",
   "Rashid": "https://www.streetfighter.com/6/assets/images/character/rashid/ver01/face.png",
   "Ed": "https://www.streetfighter.com/6/assets/images/character/ed/ver01/face.png"
+};
+
+// Sample team members for preloaded analysis
+const sampleBlueTeamMembers: TeamMemberProfile[] = [
+  {
+    id: 101,
+    name: "Alex Wang",
+    character: "Ryu",
+    rank: "Diamond",
+    winRate: 68,
+    preferredPosition: "starter",
+    characterAvatar: characterAvatarUrls["Ryu"],
+    strengthScore: 82,
+    notes: "Team captain with exceptional fundamentals",
+    style: "All-Rounder",
+    skills: {
+      offense: 75,
+      defense: 85,
+      adaptation: 80,
+      execution: 78,
+      footsies: 90
+    }
+  },
+  {
+    id: 102,
+    name: "Jessica Lee",
+    character: "Cammy",
+    rank: "Platinum",
+    winRate: 72,
+    preferredPosition: "middle",
+    characterAvatar: characterAvatarUrls["Cammy"],
+    strengthScore: 79,
+    notes: "Aggressive player with excellent pressure",
+    style: "Rushdown",
+    skills: {
+      offense: 90,
+      defense: 65,
+      adaptation: 75,
+      execution: 85,
+      footsies: 75
+    }
+  },
+  {
+    id: 103,
+    name: "Marcus Johnson",
+    character: "Guile",
+    rank: "Master",
+    winRate: 65,
+    preferredPosition: "anchor",
+    characterAvatar: characterAvatarUrls["Guile"],
+    strengthScore: 84,
+    notes: "Defensive specialist, excellent at comebacks",
+    style: "Zoner",
+    skills: {
+      offense: 70,
+      defense: 95,
+      adaptation: 85,
+      execution: 80,
+      footsies: 85
+    }
+  }
+];
+
+const sampleRedTeamMembers: TeamMemberProfile[] = [
+  {
+    id: 201,
+    name: "Kai Rodriguez",
+    character: "Ken",
+    rank: "Master",
+    winRate: 70,
+    preferredPosition: "starter",
+    characterAvatar: characterAvatarUrls["Ken"],
+    strengthScore: 86,
+    notes: "Aggressive player known for quick combos",
+    style: "All-Rounder",
+    skills: {
+      offense: 92,
+      defense: 70,
+      adaptation: 82,
+      execution: 88,
+      footsies: 80
+    }
+  },
+  {
+    id: 202,
+    name: "Naomi Chen",
+    character: "Dhalsim",
+    rank: "Diamond",
+    winRate: 64,
+    preferredPosition: "middle",
+    characterAvatar: characterAvatarUrls["Dhalsim"],
+    strengthScore: 78,
+    notes: "Zoning specialist with precise spacing",
+    style: "Zoner",
+    skills: {
+      offense: 65,
+      defense: 75,
+      adaptation: 85,
+      execution: 80,
+      footsies: 92
+    }
+  },
+  {
+    id: 203,
+    name: "Tyrone Jackson",
+    character: "Zangief",
+    rank: "Platinum",
+    winRate: 62,
+    preferredPosition: "anchor",
+    characterAvatar: characterAvatarUrls["Zangief"],
+    strengthScore: 80,
+    notes: "Grappler with clutch comeback potential",
+    style: "Grappler",
+    skills: {
+      offense: 85,
+      defense: 75,
+      adaptation: 70,
+      execution: 75,
+      footsies: 65
+    }
+  }
+];
+
+// Initial data for the teams
+const initialBlueTeam: TeamProfile = {
+  id: 1,
+  name: "Dynasty FGC",
+  members: sampleBlueTeamMembers,
+  strengths: ["Balanced Team Composition", "Strong Fundamentals", "Adaptable Play Styles"],
+  weaknesses: ["Inconsistent Performance Against Grapplers"],
+  overallSkill: 82
+};
+
+const initialRedTeam: TeamProfile = {
+  id: 2,
+  name: "Cobra Kai FGC",
+  members: sampleRedTeamMembers,
+  strengths: ["Aggressive Offense", "Diverse Character Selection", "Strong Tournament Results"],
+  weaknesses: ["Occasional Defensive Lapses", "Risk-Taking Under Pressure"],
+  overallSkill: 81
 };
 
 // Helper functions for character archetypes and traits

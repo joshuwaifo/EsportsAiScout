@@ -1,0 +1,1442 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle,
+  CardFooter 
+} from "@/components/ui/card";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
+import { 
+  UsersIcon, 
+  ShieldIcon, 
+  SwordIcon, 
+  BrainIcon, 
+  ChevronRight, 
+  ChevronDown, 
+  ChevronUp,
+  GaugeIcon,
+  BoltIcon,
+  ActivityIcon,
+  SearchIcon,
+  TrophyIcon,
+  ArrowRightLeftIcon
+} from "lucide-react";
+
+// Types for team scouting
+export interface TeamMemberProfile {
+  id: number;
+  name: string;
+  character: string;
+  rank: string;
+  winRate: number;
+  matchHistory?: string;
+  preferredPosition?: 'starter' | 'middle' | 'anchor' | undefined;
+  avatar?: string;
+  characterAvatar?: string;
+  strengthScore: number;
+  notes?: string;
+  style?: string;
+  skills: {
+    offense: number;
+    defense: number;
+    adaptation: number;
+    execution: number;
+    footsies: number;
+  };
+}
+
+export interface TeamProfile {
+  id: number;
+  name: string;
+  members: TeamMemberProfile[];
+  strengths: string[];
+  weaknesses: string[];
+  overallSkill: number;
+}
+
+export interface MatchupAnalysis {
+  player1: TeamMemberProfile;
+  player2: TeamMemberProfile;
+  advantagePercent: number; // Positive for player1 advantage, negative for player2
+  notes: string[];
+}
+
+export interface TeamBattlePrediction {
+  predictedWinner: TeamProfile;
+  matchups: MatchupAnalysis[];
+  recommendedOrder: TeamMemberProfile[];
+  notes: string[];
+}
+
+// Constants
+const SF6_CHARACTERS = [
+  "Ryu", "Ken", "Chun-Li", "Guile", "Zangief", "Dhalsim", "E. Honda", 
+  "Blanka", "Cammy", "Luke", "Kimberly", "Juri", "Jamie", "Manon", 
+  "Marisa", "JP", "Dee Jay", "Lily", "A.K.I.", "Rashid", "Ed"
+];
+
+const SF6_RANKS = [
+  "Rookie", "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master"
+];
+
+// Character avatar URLs for common SF6 characters
+const characterAvatarUrls: Record<string, string> = {
+  "Ryu": "https://www.streetfighter.com/6/assets/images/character/ryu/ver01/face.png",
+  "Ken": "https://www.streetfighter.com/6/assets/images/character/ken/ver01/face.png",
+  "Chun-Li": "https://www.streetfighter.com/6/assets/images/character/chunli/ver01/face.png",
+  "Guile": "https://www.streetfighter.com/6/assets/images/character/guile/ver01/face.png",
+  "Zangief": "https://www.streetfighter.com/6/assets/images/character/zangief/ver01/face.png",
+  "Dhalsim": "https://www.streetfighter.com/6/assets/images/character/dhalsim/ver01/face.png",
+  "E. Honda": "https://www.streetfighter.com/6/assets/images/character/honda/ver01/face.png",
+  "Blanka": "https://www.streetfighter.com/6/assets/images/character/blanka/ver01/face.png",
+  "Cammy": "https://www.streetfighter.com/6/assets/images/character/cammy/ver01/face.png",
+  "Luke": "https://www.streetfighter.com/6/assets/images/character/luke/ver01/face.png",
+  "Kimberly": "https://www.streetfighter.com/6/assets/images/character/kimberly/ver01/face.png",
+  "Juri": "https://www.streetfighter.com/6/assets/images/character/juri/ver01/face.png",
+  "Jamie": "https://www.streetfighter.com/6/assets/images/character/jamie/ver01/face.png",
+  "Manon": "https://www.streetfighter.com/6/assets/images/character/manon/ver01/face.png",
+  "Marisa": "https://www.streetfighter.com/6/assets/images/character/marisa/ver01/face.png",
+  "JP": "https://www.streetfighter.com/6/assets/images/character/jp/ver01/face.png",
+  "Dee Jay": "https://www.streetfighter.com/6/assets/images/character/deejay/ver01/face.png",
+  "Lily": "https://www.streetfighter.com/6/assets/images/character/lily/ver01/face.png",
+  "A.K.I.": "https://www.streetfighter.com/6/assets/images/character/aki/ver01/face.png",
+  "Rashid": "https://www.streetfighter.com/6/assets/images/character/rashid/ver01/face.png",
+  "Ed": "https://www.streetfighter.com/6/assets/images/character/ed/ver01/face.png"
+};
+
+// Sample team members for preloaded analysis
+const sampleBlueTeamMembers: TeamMemberProfile[] = [
+  {
+    id: 101,
+    name: "Alex Wang",
+    character: "Ryu",
+    rank: "Diamond",
+    winRate: 68,
+    preferredPosition: "starter",
+    characterAvatar: characterAvatarUrls["Ryu"],
+    strengthScore: 82,
+    notes: "Team captain with exceptional fundamentals",
+    style: "All-Rounder",
+    skills: {
+      offense: 75,
+      defense: 85,
+      adaptation: 80,
+      execution: 78,
+      footsies: 90
+    }
+  },
+  {
+    id: 102,
+    name: "Jessica Lee",
+    character: "Cammy",
+    rank: "Platinum",
+    winRate: 72,
+    preferredPosition: "middle",
+    characterAvatar: characterAvatarUrls["Cammy"],
+    strengthScore: 79,
+    notes: "Aggressive player with excellent pressure",
+    style: "Rushdown",
+    skills: {
+      offense: 90,
+      defense: 65,
+      adaptation: 75,
+      execution: 85,
+      footsies: 75
+    }
+  },
+  {
+    id: 103,
+    name: "Marcus Johnson",
+    character: "Guile",
+    rank: "Master",
+    winRate: 65,
+    preferredPosition: "anchor",
+    characterAvatar: characterAvatarUrls["Guile"],
+    strengthScore: 84,
+    notes: "Defensive specialist, excellent at comebacks",
+    style: "Zoner",
+    skills: {
+      offense: 70,
+      defense: 95,
+      adaptation: 85,
+      execution: 80,
+      footsies: 85
+    }
+  }
+];
+
+const sampleRedTeamMembers: TeamMemberProfile[] = [
+  {
+    id: 201,
+    name: "Kai Rodriguez",
+    character: "Ken",
+    rank: "Master",
+    winRate: 70,
+    preferredPosition: "starter",
+    characterAvatar: characterAvatarUrls["Ken"],
+    strengthScore: 86,
+    notes: "Aggressive player known for quick combos",
+    style: "All-Rounder",
+    skills: {
+      offense: 92,
+      defense: 70,
+      adaptation: 82,
+      execution: 88,
+      footsies: 80
+    }
+  },
+  {
+    id: 202,
+    name: "Naomi Chen",
+    character: "Dhalsim",
+    rank: "Diamond",
+    winRate: 64,
+    preferredPosition: "middle",
+    characterAvatar: characterAvatarUrls["Dhalsim"],
+    strengthScore: 78,
+    notes: "Zoning specialist with precise spacing",
+    style: "Zoner",
+    skills: {
+      offense: 65,
+      defense: 75,
+      adaptation: 85,
+      execution: 80,
+      footsies: 92
+    }
+  },
+  {
+    id: 203,
+    name: "Tyrone Jackson",
+    character: "Zangief",
+    rank: "Platinum",
+    winRate: 62,
+    preferredPosition: "anchor",
+    characterAvatar: characterAvatarUrls["Zangief"],
+    strengthScore: 80,
+    notes: "Grappler with clutch comeback potential",
+    style: "Grappler",
+    skills: {
+      offense: 85,
+      defense: 75,
+      adaptation: 70,
+      execution: 75,
+      footsies: 65
+    }
+  }
+];
+
+// Initial data for the teams
+const initialBlueTeam: TeamProfile = {
+  id: 1,
+  name: "Dynasty FGC",
+  members: sampleBlueTeamMembers,
+  strengths: ["Balanced Team Composition", "Strong Fundamentals", "Adaptable Play Styles"],
+  weaknesses: ["Inconsistent Performance Against Grapplers"],
+  overallSkill: 82
+};
+
+const initialRedTeam: TeamProfile = {
+  id: 2,
+  name: "Cobra Kai FGC",
+  members: sampleRedTeamMembers,
+  strengths: ["Aggressive Offense", "Diverse Character Selection", "Strong Tournament Results"],
+  weaknesses: ["Occasional Defensive Lapses", "Risk-Taking Under Pressure"],
+  overallSkill: 81
+};
+
+// Helper functions for character archetypes and traits
+const getCharacterArchetype = (character: string): string => {
+  switch(character) {
+    case "Ryu":
+    case "Ken":
+    case "Luke":
+      return "All-Rounder";
+    case "Chun-Li":
+    case "Cammy":
+    case "Kimberly":
+    case "Juri":
+      return "Rushdown";
+    case "Guile":
+    case "Dhalsim":
+    case "JP":
+      return "Zoner";
+    case "Zangief":
+    case "E. Honda":
+    case "Marisa":
+      return "Grappler";
+    case "Blanka":
+    case "Rashid":
+    case "Jamie":
+      return "Mixed/Tricky";
+    case "Manon":
+    case "Lily":
+    case "A.K.I.":
+    case "Dee Jay":
+    case "Ed":
+      return "Balanced";
+    default:
+      return "Unknown";
+  }
+};
+
+const getCharacterStrengths = (character: string): string[] => {
+  switch(character) {
+    case "Ryu": 
+      return ["Solid Fundamentals", "Good Anti-Airs", "Simple Execution"];
+    case "Ken": 
+      return ["High Damage Output", "Aggressive Rushdown", "Good Mix-Ups"];
+    case "Chun-Li": 
+      return ["Fast Normals", "Strong Pokes", "Good Pressure"];
+    case "Guile": 
+      return ["Strong Defensive Play", "Powerful Projectiles", "Space Control"];
+    case "Zangief": 
+      return ["Command Grabs", "High Damage", "Great Up Close"];
+    case "Dhalsim": 
+      return ["Long Range", "Space Control", "Teleport Mix-Ups"];
+    case "Cammy": 
+      return ["Fast Movement", "Good Pressure", "Dive Kick Mix-Ups"];
+    case "Luke": 
+      return ["Projectiles", "Forward Moving Specials", "Good Frame Data"];
+    default: 
+      return ["Unknown Character Strengths"];
+  }
+};
+
+const getCharacterWeaknesses = (character: string): string[] => {
+  switch(character) {
+    case "Ryu": 
+      return ["Limited Mix-Up", "Average Movement", "Predictable Approach"];
+    case "Ken": 
+      return ["Risky Offense", "Punishable Specials", "Requires Good Execution"];
+    case "Chun-Li": 
+      return ["Complex Execution", "Requires Good Reactions", "Technical Combos"];
+    case "Guile": 
+      return ["Charge Character", "Weak to Pressure", "Limited Anti-Air Options"];
+    case "Zangief": 
+      return ["Slow Movement", "Weak at Range", "Susceptible to Zoning"];
+    case "Dhalsim": 
+      return ["Low Health", "Weak Up Close", "Technical Gameplay"];
+    case "Cammy": 
+      return ["Low Health", "Limited Range", "Requires Good Execution"];
+    case "Luke": 
+      return ["Charge-based Moves", "Limited Defensive Options", "Predictable Attack Patterns"];
+    default: 
+      return ["Unknown Character Weaknesses"];
+  }
+};
+
+// Create a sample team battle prediction for initial display
+const createSampleTeamBattlePrediction = (team1: TeamProfile, team2: TeamProfile): TeamBattlePrediction => {
+  // Generate sample matchups
+  const matchups: MatchupAnalysis[] = [];
+  
+  // Match the first player from each team
+  const matchup1: MatchupAnalysis = {
+    player1: team1.members[0],
+    player2: team2.members[0],
+    advantagePercent: 3, // close matchup
+    notes: [
+      "Even matchup - could go either way",
+      "Both players have strong fundamentals",
+      `${team1.members[0].character} vs ${team2.members[0].character} is a standard matchup with slight advantage to Ryu`
+    ]
+  };
+  
+  // Match the second player from each team
+  const matchup2: MatchupAnalysis = {
+    player1: team1.members[1],
+    player2: team2.members[1],
+    advantagePercent: -12, // disadvantage for team1
+    notes: [
+      `${team2.members[1].name} has advantage due to slightly better overall skill`,
+      `Dhalsim's range can neutralize Cammy's rushdown attempts`,
+      `${team1.members[1].name} needs to be patient and find openings to get close`
+    ]
+  };
+  
+  // Match the third player from each team
+  const matchup3: MatchupAnalysis = {
+    player1: team1.members[2],
+    player2: team2.members[2],
+    advantagePercent: 15, // advantage for team1
+    notes: [
+      `${team1.members[2].name} has advantage due to significantly better overall skill`,
+      `Guile's projectiles can keep Zangief at bay`,
+      `${team2.members[2].name} needs to close distance quickly to have a chance`
+    ]
+  };
+  
+  // Add matchups to the array
+  matchups.push(matchup1, matchup2, matchup3);
+  
+  // Determine overall advantage
+  const team1Advantage = (matchup1.advantagePercent + matchup2.advantagePercent + matchup3.advantagePercent) / 3;
+  
+  // Create recommended order
+  const recommendedOrder = [...team1.members].sort((a, b) => {
+    if (a.id === team1.members[2].id) return -1; // Put Guile first (advantage vs Zangief)
+    if (b.id === team1.members[2].id) return 1;
+    if (a.id === team1.members[0].id) return -1; // Put Ryu second (even matchup)
+    if (b.id === team1.members[0].id) return 1;
+    return 0; // Cammy last (disadvantage vs Dhalsim)
+  });
+  
+  // Generate overall prediction notes
+  const notes: string[] = [
+    "Teams are closely matched with slight advantage to Dynasty FGC",
+    "Dynasty should lead with Guile to secure an early advantage",
+    "Cobra Kai should consider starting with Dhalsim for the favorable matchup against Cammy",
+    "Team battle outcome will likely be decided by the anchor matchup"
+  ];
+  
+  return {
+    predictedWinner: team1,
+    matchups,
+    recommendedOrder,
+    notes
+  };
+};
+
+// The main TeamBattleScout component
+const TeamBattleScout: React.FC = () => {
+  const [blueTeam, setBlueTeam] = useState<TeamProfile>(initialBlueTeam);
+  const [redTeam, setRedTeam] = useState<TeamProfile>(initialRedTeam);
+  const [activeTab, setActiveTab] = useState("teamBuilder");
+  const [currentEditingTeam, setCurrentEditingTeam] = useState<'blue' | 'red'>('blue');
+  const [newMember, setNewMember] = useState<Partial<TeamMemberProfile>>({
+    name: "",
+    character: "",
+    rank: "",
+    winRate: 50,
+    preferredPosition: undefined,
+    skills: {
+      offense: 50,
+      defense: 50,
+      adaptation: 50,
+      execution: 50,
+      footsies: 50
+    }
+  });
+  
+  // Create initial team prediction
+  const [teamPrediction, setTeamPrediction] = useState<TeamBattlePrediction | null>(
+    createSampleTeamBattlePrediction(initialBlueTeam, initialRedTeam)
+  );
+  const [analysisInProgress, setAnalysisInProgress] = useState(false);
+  const [showAddMemberForm, setShowAddMemberForm] = useState(false);
+  
+  // Auto-display matchup analysis since we have initial data
+  useEffect(() => {
+    // Setting a timeout to simulate loading
+    setTimeout(() => {
+      setActiveTab("matchupAnalysis");
+    }, 500);
+  }, []);
+  
+  // Add a new member to a team
+  const addTeamMember = (teamId: number) => {
+    if (!newMember.name || !newMember.character || !newMember.rank) {
+      // Basic validation
+      alert("Please fill in all required fields");
+      return;
+    }
+    
+    const characterAvatar = characterAvatarUrls[newMember.character || ""] || "";
+    
+    const strengthScore = calculateStrengthScore(newMember.skills!);
+    
+    const memberToAdd: TeamMemberProfile = {
+      id: Date.now(),
+      name: newMember.name || "",
+      character: newMember.character || "",
+      rank: newMember.rank || "",
+      winRate: newMember.winRate || 50,
+      preferredPosition: newMember.preferredPosition,
+      characterAvatar,
+      strengthScore,
+      notes: newMember.notes || "",
+      style: getCharacterArchetype(newMember.character || ""),
+      skills: newMember.skills as TeamMemberProfile["skills"]
+    };
+    
+    if (teamId === blueTeam.id) {
+      setBlueTeam({
+        ...blueTeam,
+        members: [...blueTeam.members, memberToAdd]
+      });
+    } else {
+      setRedTeam({
+        ...redTeam,
+        members: [...redTeam.members, memberToAdd]
+      });
+    }
+    
+    // Reset form
+    setNewMember({
+      name: "",
+      character: "",
+      rank: "",
+      winRate: 50,
+      preferredPosition: undefined,
+      skills: {
+        offense: 50,
+        defense: 50,
+        adaptation: 50,
+        execution: 50,
+        footsies: 50
+      }
+    });
+    
+    setShowAddMemberForm(false);
+  };
+  
+  // Remove a member from a team
+  const removeTeamMember = (teamId: number, memberId: number) => {
+    if (teamId === blueTeam.id) {
+      setBlueTeam({
+        ...blueTeam,
+        members: blueTeam.members.filter(member => member.id !== memberId)
+      });
+    } else {
+      setRedTeam({
+        ...redTeam,
+        members: redTeam.members.filter(member => member.id !== memberId)
+      });
+    }
+  };
+  
+  // Update team analysis
+  const analyzeTeams = () => {
+    if (blueTeam.members.length === 0 || redTeam.members.length === 0) {
+      alert("Please add members to both teams");
+      return;
+    }
+    
+    setAnalysisInProgress(true);
+    
+    // In a real app, this would make API calls and run complex analysis
+    // For the demo, we'll simulate a brief delay and generate mock data
+    setTimeout(() => {
+      // Run analysis functions
+      const blueTeamWithAnalysis = analyzeTeam(blueTeam);
+      const redTeamWithAnalysis = analyzeTeam(redTeam);
+      
+      setBlueTeam(blueTeamWithAnalysis);
+      setRedTeam(redTeamWithAnalysis);
+      
+      // Generate matchup predictions
+      const prediction = predictTeamBattle(blueTeamWithAnalysis, redTeamWithAnalysis);
+      setTeamPrediction(prediction);
+      
+      setAnalysisInProgress(false);
+      setActiveTab("matchupAnalysis");
+    }, 1500);
+  };
+  
+  // Calculate a member's strength score based on skills
+  const calculateStrengthScore = (skills: TeamMemberProfile["skills"]): number => {
+    const { offense, defense, adaptation, execution, footsies } = skills;
+    // Weighted average
+    return Math.round((offense * 0.25 + defense * 0.2 + adaptation * 0.2 + execution * 0.15 + footsies * 0.2));
+  };
+  
+  // Analyze a team's overall strengths and weaknesses
+  const analyzeTeam = (team: TeamProfile): TeamProfile => {
+    // Calculate team's overall skill level
+    const overallSkill = team.members.reduce((acc, member) => acc + member.strengthScore, 0) / 
+                          (team.members.length || 1);
+    
+    // Determine team composition type
+    const archetypes = team.members.map(member => getCharacterArchetype(member.character));
+    
+    // Count archetype frequency
+    const archetypeCounts: Record<string, number> = {};
+    archetypes.forEach(archetype => {
+      archetypeCounts[archetype] = (archetypeCounts[archetype] || 0) + 1;
+    });
+    
+    // Identify team strengths
+    const strengths: string[] = [];
+    
+    // High overall skill is a strength
+    if (overallSkill > 70) {
+      strengths.push("High Overall Skill Level");
+    }
+    
+    // High win rates
+    const avgWinRate = team.members.reduce((acc, member) => acc + member.winRate, 0) / 
+                        (team.members.length || 1);
+    if (avgWinRate > 65) {
+      strengths.push("Strong Win Record");
+    }
+    
+    // Balanced team composition
+    const uniqueArchetypes = new Set(archetypes).size;
+    if (uniqueArchetypes >= 3 && team.members.length >= 3) {
+      strengths.push("Diverse Character Selection");
+    }
+    
+    // Specialized team composition
+    Object.entries(archetypeCounts).forEach(([archetype, count]) => {
+      if (count >= 3 && team.members.length >= 4) {
+        strengths.push(`${archetype} Specialist Team`);
+      }
+    });
+    
+    // Average skill analysis
+    const avgOffense = team.members.reduce((acc, member) => acc + member.skills.offense, 0) / 
+                        (team.members.length || 1);
+    const avgDefense = team.members.reduce((acc, member) => acc + member.skills.defense, 0) / 
+                        (team.members.length || 1);
+    
+    if (avgOffense > 70) {
+      strengths.push("Strong Offensive Capability");
+    }
+    if (avgDefense > 70) {
+      strengths.push("Solid Defensive Skills");
+    }
+    
+    // Identify team weaknesses
+    const weaknesses: string[] = [];
+    
+    // Low overall skill is a weakness
+    if (overallSkill < 40) {
+      weaknesses.push("Low Overall Skill Level");
+    }
+    
+    // Low win rates
+    if (avgWinRate < 40) {
+      weaknesses.push("Poor Win Record");
+    }
+    
+    // Limited team composition
+    if (uniqueArchetypes <= 1 && team.members.length >= 3) {
+      weaknesses.push("Limited Character Diversity");
+    }
+    
+    // Skill gaps
+    if (avgOffense < 40) {
+      weaknesses.push("Weak Offensive Capability");
+    }
+    if (avgDefense < 40) {
+      weaknesses.push("Poor Defensive Skills");
+    }
+    
+    // Return updated team
+    return {
+      ...team,
+      strengths: strengths.length > 0 ? strengths : ["No specific strengths identified"],
+      weaknesses: weaknesses.length > 0 ? weaknesses : ["No specific weaknesses identified"],
+      overallSkill: Math.round(overallSkill)
+    };
+  };
+  
+  // Generate matchup predictions between teams
+  const predictTeamBattle = (team1: TeamProfile, team2: TeamProfile): TeamBattlePrediction => {
+    // Store matchup analysis
+    const matchups: MatchupAnalysis[] = [];
+    
+    // We'll analyze each potential matchup
+    team1.members.forEach(member1 => {
+      team2.members.forEach(member2 => {
+        // Calculate matchup advantage based on skills and character matchups
+        const skillAdvantage = member1.strengthScore - member2.strengthScore;
+        
+        // Simple character matchup factors (in a real app would use a proper matchup chart)
+        let characterFactor = 0;
+        
+        // Grapplers vs Zoners: disadvantage for grapplers
+        if (getCharacterArchetype(member1.character) === "Grappler" && 
+            getCharacterArchetype(member2.character) === "Zoner") {
+          characterFactor = -10;
+        }
+        
+        // Rushdown vs Grapplers: advantage for rushdown
+        if (getCharacterArchetype(member1.character) === "Rushdown" && 
+            getCharacterArchetype(member2.character) === "Grappler") {
+          characterFactor = 10;
+        }
+        
+        // Calculate total advantage as percentage
+        const totalAdvantage = Math.max(Math.min((skillAdvantage + characterFactor) / 2, 30), -30);
+        
+        // Generate notes about the matchup
+        const notes: string[] = [];
+        
+        if (Math.abs(totalAdvantage) < 5) {
+          notes.push("Even matchup - could go either way");
+        } else if (totalAdvantage > 0) {
+          notes.push(`${member1.name} has advantage due to ${totalAdvantage > 15 ? 'significantly' : 'slightly'} better overall skill`);
+          
+          if (member1.skills.offense > member2.skills.defense + 20) {
+            notes.push(`${member1.name}'s offensive pressure likely to overwhelm ${member2.name}'s defense`);
+          }
+          
+          if (characterFactor !== 0) {
+            notes.push(`${member1.character} has favorable matchup against ${member2.character}`);
+          }
+        } else {
+          notes.push(`${member2.name} has advantage due to ${Math.abs(totalAdvantage) > 15 ? 'significantly' : 'slightly'} better overall skill`);
+          
+          if (member2.skills.offense > member1.skills.defense + 20) {
+            notes.push(`${member2.name}'s offensive pressure likely to overwhelm ${member1.name}'s defense`);
+          }
+          
+          if (characterFactor !== 0) {
+            notes.push(`${member2.character} has favorable matchup against ${member1.character}`);
+          }
+        }
+        
+        // Add to matchups array
+        matchups.push({
+          player1: member1,
+          player2: member2,
+          advantagePercent: totalAdvantage,
+          notes
+        });
+      });
+    });
+    
+    // Determine optimal order for team 1 based on matchups
+    const recommendedOrder = [...team1.members].sort((a, b) => {
+      // Prefer members with preferred starting position
+      if (a.preferredPosition === 'starter' && b.preferredPosition !== 'starter') return -1;
+      if (b.preferredPosition === 'starter' && a.preferredPosition !== 'starter') return 1;
+      
+      // Prefer members with highest average advantage
+      const aAvgAdvantage = matchups
+        .filter(m => m.player1.id === a.id)
+        .reduce((sum, m) => sum + m.advantagePercent, 0) / 
+        matchups.filter(m => m.player1.id === a.id).length;
+        
+      const bAvgAdvantage = matchups
+        .filter(m => m.player1.id === b.id)
+        .reduce((sum, m) => sum + m.advantagePercent, 0) / 
+        matchups.filter(m => m.player1.id === b.id).length;
+        
+      return bAvgAdvantage - aAvgAdvantage;
+    });
+    
+    // Determine which team has overall advantage
+    const team1AvgAdvantage = matchups.reduce((sum, m) => sum + m.advantagePercent, 0) / matchups.length;
+    const predictedWinner = team1AvgAdvantage > 0 ? team1 : team2;
+    
+    // Generate overall prediction notes
+    const notes: string[] = [];
+    
+    if (Math.abs(team1AvgAdvantage) < 5) {
+      notes.push("Teams are evenly matched - outcome depends on specific player matchups");
+    } else if (team1AvgAdvantage > 0) {
+      notes.push(`${team1.name} has a ${Math.round(Math.abs(team1AvgAdvantage))}% overall advantage`);
+      notes.push(`${team1.name} should focus on exploiting the strong matchups in their favor`);
+    } else {
+      notes.push(`${team2.name} has a ${Math.round(Math.abs(team1AvgAdvantage))}% overall advantage`);
+      notes.push(`${team1.name} should consider counter-picks to reduce their disadvantages`);
+    }
+    
+    return {
+      predictedWinner,
+      matchups,
+      recommendedOrder,
+      notes
+    };
+  };
+  
+  // Render function for team member cards
+  const renderTeamMember = (team: TeamProfile, member: TeamMemberProfile) => (
+    <Card key={member.id} className="mb-4 bg-surface overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-14 w-14 border-2 border-primary">
+            {member.characterAvatar ? (
+              <AvatarImage src={member.characterAvatar} alt={member.character} />
+            ) : (
+              <AvatarFallback>{member.character.substring(0, 2)}</AvatarFallback>
+            )}
+          </Avatar>
+          
+          <div className="flex-1">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-semibold">{member.name}</h3>
+                <div className="flex items-center text-sm text-gray-400">
+                  <span className="mr-2">{member.character}</span>
+                  <Badge className="ml-2 bg-purple-800">{member.rank}</Badge>
+                  {member.preferredPosition && (
+                    <Badge className="ml-2 bg-blue-800">
+                      {member.preferredPosition === 'starter' ? 'Starter' : 
+                        member.preferredPosition === 'middle' ? 'Middle' : 'Anchor'}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-right">
+                <div className="flex items-center">
+                  <TrophyIcon className="w-4 h-4 text-yellow-500 mr-1" />
+                  <span className="text-sm font-semibold">{member.winRate}% Win Rate</span>
+                </div>
+                <div className="flex items-center mt-1">
+                  <GaugeIcon className="w-4 h-4 text-blue-400 mr-1" />
+                  <span className="text-sm">Power: {member.strengthScore}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-1">Fighting Style: {member.style}</p>
+              <div className="grid grid-cols-5 gap-2 mt-2">
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 mb-1">Offense</div>
+                  <Progress value={member.skills.offense} className="h-1.5" />
+                  <span className="text-xs">{member.skills.offense}</span>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 mb-1">Defense</div>
+                  <Progress value={member.skills.defense} className="h-1.5" />
+                  <span className="text-xs">{member.skills.defense}</span>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 mb-1">Adapt</div>
+                  <Progress value={member.skills.adaptation} className="h-1.5" />
+                  <span className="text-xs">{member.skills.adaptation}</span>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 mb-1">Exec</div>
+                  <Progress value={member.skills.execution} className="h-1.5" />
+                  <span className="text-xs">{member.skills.execution}</span>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 mb-1">Footsies</div>
+                  <Progress value={member.skills.footsies} className="h-1.5" />
+                  <span className="text-xs">{member.skills.footsies}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {member.notes && (
+          <div className="mt-3 pt-3 border-t border-gray-700">
+            <p className="text-sm text-gray-300">{member.notes}</p>
+          </div>
+        )}
+        
+        <div className="mt-3 flex justify-end">
+          <Button 
+            variant="destructive" 
+            size="sm"
+            onClick={() => removeTeamMember(team.id, member.id)}
+          >
+            Remove
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+  
+  // Render matchup analysis
+  const renderMatchupAnalysis = () => {
+    if (!teamPrediction) return null;
+    
+    // Get unique matchups (one from each team)
+    const displayMatchups: MatchupAnalysis[] = [];
+    const bluePlayerIds = new Set<number>();
+    const redPlayerIds = new Set<number>();
+    
+    for (const matchup of teamPrediction.matchups) {
+      if (bluePlayerIds.size < blueTeam.members.length && 
+          redPlayerIds.size < redTeam.members.length &&
+          !bluePlayerIds.has(matchup.player1.id) &&
+          !redPlayerIds.has(matchup.player2.id)) {
+        displayMatchups.push(matchup);
+        bluePlayerIds.add(matchup.player1.id);
+        redPlayerIds.add(matchup.player2.id);
+      }
+    }
+    
+    return (
+      <>
+        <Card className="mb-6 bg-surface border-none">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <TrophyIcon className="mr-2 h-5 w-5 text-primary" />
+              Predicted Outcome
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4 rounded-lg bg-background/30">
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center">
+                    <Badge className="mr-2 bg-blue-600">{blueTeam.name}</Badge>
+                    <span className="text-sm text-gray-300">vs</span>
+                    <Badge className="ml-2 bg-red-600">{redTeam.name}</Badge>
+                  </div>
+                  <div>
+                    <Badge className={teamPrediction.predictedWinner.id === blueTeam.id ? "bg-blue-600" : "bg-red-600"}>
+                      Predicted Winner: {teamPrediction.predictedWinner.name}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 mt-4">
+                  <h4 className="text-sm font-semibold mb-2">Analysis Notes:</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-300">
+                    {teamPrediction.notes.map((note, index) => (
+                      <li key={index}>{note}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="grid grid-cols-1 gap-6">
+          {displayMatchups.map((matchup, index) => (
+            <Card key={index} className="bg-surface border-none">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <ArrowRightLeftIcon className="mr-2 h-5 w-5 text-primary" />
+                  Matchup Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg bg-background/30 p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="h-12 w-12 border-2 border-blue-600">
+                        {matchup.player1.characterAvatar ? (
+                          <AvatarImage src={matchup.player1.characterAvatar} alt={matchup.player1.character} />
+                        ) : (
+                          <AvatarFallback>{matchup.player1.character.substring(0, 2)}</AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <h3 className="font-medium">{matchup.player1.name}</h3>
+                        <p className="text-sm text-gray-400">{matchup.player1.character} ({matchup.player1.rank})</p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-white">vs</div>
+                      <Badge className={
+                        matchup.advantagePercent > 5 ? "bg-green-600" : 
+                        matchup.advantagePercent < -5 ? "bg-red-600" : 
+                        "bg-yellow-600"
+                      }>
+                        {matchup.advantagePercent > 5 ? "Advantage" : 
+                         matchup.advantagePercent < -5 ? "Disadvantage" : 
+                         "Even Match"}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4">
+                      <div className="text-right">
+                        <h3 className="font-medium">{matchup.player2.name}</h3>
+                        <p className="text-sm text-gray-400">{matchup.player2.character} ({matchup.player2.rank})</p>
+                      </div>
+                      <Avatar className="h-12 w-12 border-2 border-red-600">
+                        {matchup.player2.characterAvatar ? (
+                          <AvatarImage src={matchup.player2.characterAvatar} alt={matchup.player2.character} />
+                        ) : (
+                          <AvatarFallback>{matchup.player2.character.substring(0, 2)}</AvatarFallback>
+                        )}
+                      </Avatar>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <h4 className="text-sm font-semibold mb-2">Matchup Notes:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-300">
+                      {matchup.notes.map((note, index) => (
+                        <li key={index}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="mt-4 grid grid-cols-2 gap-8">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-blue-400">
+                        {matchup.player1.name}'s Skills
+                      </h4>
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>Offense</span>
+                            <span>{matchup.player1.skills.offense}</span>
+                          </div>
+                          <Progress value={matchup.player1.skills.offense} className="h-1.5" />
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>Defense</span>
+                            <span>{matchup.player1.skills.defense}</span>
+                          </div>
+                          <Progress value={matchup.player1.skills.defense} className="h-1.5" />
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>Adaptation</span>
+                            <span>{matchup.player1.skills.adaptation}</span>
+                          </div>
+                          <Progress value={matchup.player1.skills.adaptation} className="h-1.5" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-red-400">
+                        {matchup.player2.name}'s Skills
+                      </h4>
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>Offense</span>
+                            <span>{matchup.player2.skills.offense}</span>
+                          </div>
+                          <Progress value={matchup.player2.skills.offense} className="h-1.5" />
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>Defense</span>
+                            <span>{matchup.player2.skills.defense}</span>
+                          </div>
+                          <Progress value={matchup.player2.skills.defense} className="h-1.5" />
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>Adaptation</span>
+                            <span>{matchup.player2.skills.adaptation}</span>
+                          </div>
+                          <Progress value={matchup.player2.skills.adaptation} className="h-1.5" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {/* Recommended Order */}
+        <Card className="mt-6 bg-surface border-none">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BrainIcon className="mr-2 h-5 w-5 text-primary" />
+              Recommended Order for {blueTeam.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4 rounded-lg bg-background/30">
+              <div className="space-y-4">
+                {teamPrediction.recommendedOrder.map((member, index) => (
+                  <div key={member.id} className="flex items-center p-2 rounded-md bg-surface">
+                    <div className="flex-shrink-0 mr-4">
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <span className="font-bold">{index + 1}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center flex-1">
+                      <Avatar className="h-10 w-10 mr-3">
+                        {member.characterAvatar ? (
+                          <AvatarImage src={member.characterAvatar} alt={member.character} />
+                        ) : (
+                          <AvatarFallback>{member.character.substring(0, 2)}</AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <h4 className="font-medium">{member.name}</h4>
+                        <p className="text-xs text-gray-400">{member.character}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {index === 0 ? (
+                        <Badge className="bg-blue-600">Recommended Starter</Badge>
+                      ) : index === teamPrediction.recommendedOrder.length - 1 ? (
+                        <Badge className="bg-purple-600">Recommended Anchor</Badge>
+                      ) : (
+                        <Badge className="bg-indigo-600">Mid Position</Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
+  
+  // Render team overview
+  const renderTeamOverview = (team: TeamProfile, teamType: 'blue' | 'red') => (
+    <Card className="h-full bg-surface border-none">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl flex items-center">
+            <UsersIcon className="mr-2 h-5 w-5 text-primary" />
+            {team.name}
+          </CardTitle>
+          <Badge className={teamType === 'blue' ? "bg-blue-600" : "bg-red-600"}>
+            Rating: {team.overallSkill}
+          </Badge>
+        </div>
+        <CardDescription>
+          {team.members.length} Members • Team {teamType === 'blue' ? "Blue" : "Red"}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        {team.members.length > 0 ? (
+          <div className="space-y-4">
+            <div className="p-3 rounded-md bg-background/30">
+              <h3 className="text-sm font-semibold mb-2 flex items-center">
+                <SwordIcon className="h-4 w-4 mr-1 text-green-400" />
+                Team Strengths
+              </h3>
+              <ul className="list-disc list-inside space-y-1">
+                {team.strengths.map((strength, index) => (
+                  <li key={index} className="text-sm text-gray-300">{strength}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="p-3 rounded-md bg-background/30">
+              <h3 className="text-sm font-semibold mb-2 flex items-center">
+                <ShieldIcon className="h-4 w-4 mr-1 text-red-400" />
+                Team Weaknesses
+              </h3>
+              <ul className="list-disc list-inside space-y-1">
+                {team.weaknesses.map((weakness, index) => (
+                  <li key={index} className="text-sm text-gray-300">{weakness}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="space-y-2 mt-4">
+              {team.members.map(member => renderTeamMember(team, member))}
+            </div>
+            
+            {team.members.length < 5 && (
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => {
+                  setCurrentEditingTeam(teamType);
+                  setShowAddMemberForm(true);
+                }}
+              >
+                <UsersIcon className="h-4 w-4 mr-2" />
+                Add Team Member
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            <UsersIcon className="h-12 w-12 mx-auto text-gray-600 mb-3" />
+            <h3 className="text-lg font-medium mb-2">No Team Members</h3>
+            <p className="text-sm text-gray-400 mb-4">
+              Add team members to analyze matchups
+            </p>
+            <Button
+              variant="default"
+              onClick={() => {
+                setCurrentEditingTeam(teamType);
+                setShowAddMemberForm(true);
+              }}
+            >
+              <UsersIcon className="h-4 w-4 mr-2" />
+              Add Team Member
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+  
+  // Render add member form
+  const renderAddMemberForm = () => (
+    <Card className="bg-surface border-none">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <UsersIcon className="mr-2 h-5 w-5 text-primary" />
+          Add Team Member to {currentEditingTeam === 'blue' ? blueTeam.name : redTeam.name}
+        </CardTitle>
+        <CardDescription>
+          Fill out the details to add a new fighter to your team
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Fighter Name</label>
+              <Input
+                placeholder="Enter fighter name"
+                value={newMember.name}
+                onChange={e => setNewMember({...newMember, name: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Character</label>
+              <Select
+                value={newMember.character}
+                onValueChange={value => setNewMember({...newMember, character: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select character" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SF6_CHARACTERS.map(char => (
+                    <SelectItem key={char} value={char}>{char}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Rank</label>
+              <Select
+                value={newMember.rank}
+                onValueChange={value => setNewMember({...newMember, rank: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select rank" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SF6_RANKS.map(rank => (
+                    <SelectItem key={rank} value={rank}>{rank}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Win Rate: {newMember.winRate}%</label>
+              <Slider
+                min={0}
+                max={100}
+                step={1}
+                value={[newMember.winRate || 50]}
+                onValueChange={([value]) => setNewMember({...newMember, winRate: value})}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Preferred Position</label>
+            <Select
+              value={newMember.preferredPosition}
+              onValueChange={value => setNewMember({...newMember, preferredPosition: value as any})}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select position" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="starter">Starter</SelectItem>
+                <SelectItem value="middle">Middle</SelectItem>
+                <SelectItem value="anchor">Anchor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Notes</label>
+            <Input
+              placeholder="Additional notes about the fighter"
+              value={newMember.notes || ''}
+              onChange={e => setNewMember({...newMember, notes: e.target.value})}
+            />
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium">Skill Ratings</h3>
+            
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <label>Offense: {newMember.skills?.offense}</label>
+                </div>
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[newMember.skills?.offense || 50]}
+                  onValueChange={([value]) => setNewMember({
+                    ...newMember, 
+                    skills: {...newMember.skills!, offense: value}
+                  })}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <label>Defense: {newMember.skills?.defense}</label>
+                </div>
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[newMember.skills?.defense || 50]}
+                  onValueChange={([value]) => setNewMember({
+                    ...newMember, 
+                    skills: {...newMember.skills!, defense: value}
+                  })}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <label>Adaptation: {newMember.skills?.adaptation}</label>
+                </div>
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[newMember.skills?.adaptation || 50]}
+                  onValueChange={([value]) => setNewMember({
+                    ...newMember, 
+                    skills: {...newMember.skills!, adaptation: value}
+                  })}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <label>Execution: {newMember.skills?.execution}</label>
+                </div>
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[newMember.skills?.execution || 50]}
+                  onValueChange={([value]) => setNewMember({
+                    ...newMember, 
+                    skills: {...newMember.skills!, execution: value}
+                  })}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <label>Footsies: {newMember.skills?.footsies}</label>
+                </div>
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[newMember.skills?.footsies || 50]}
+                  onValueChange={([value]) => setNewMember({
+                    ...newMember, 
+                    skills: {...newMember.skills!, footsies: value}
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      
+      <CardFooter className="flex justify-between">
+        <Button 
+          variant="outline" 
+          onClick={() => setShowAddMemberForm(false)}
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={() => addTeamMember(currentEditingTeam === 'blue' ? blueTeam.id : redTeam.id)}
+        >
+          Add Fighter
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+  
+  return (
+    <div className="container p-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="teamBuilder" className="text-sm">
+            <UsersIcon className="h-4 w-4 mr-2" />
+            Team Builder
+          </TabsTrigger>
+          <TabsTrigger value="matchupAnalysis" className="text-sm">
+            <BrainIcon className="h-4 w-4 mr-2" />
+            Matchup Analysis
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="teamBuilder" className="mt-6">
+          {showAddMemberForm ? (
+            renderAddMemberForm()
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                {renderTeamOverview(blueTeam, 'blue')}
+              </div>
+              <div>
+                {renderTeamOverview(redTeam, 'red')}
+              </div>
+              
+              <div className="lg:col-span-2 mt-4 flex justify-center">
+                <Button 
+                  size="lg"
+                  disabled={blueTeam.members.length === 0 || redTeam.members.length === 0 || analysisInProgress}
+                  onClick={analyzeTeams}
+                >
+                  {analysisInProgress ? (
+                    <>Analyzing Teams...</>
+                  ) : (
+                    <>
+                      <BrainIcon className="h-4 w-4 mr-2" />
+                      Analyze Team Matchups
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="matchupAnalysis" className="mt-6">
+          {teamPrediction ? renderMatchupAnalysis() : (
+            <div className="flex flex-col items-center justify-center py-20">
+              <h2 className="text-2xl font-bold mb-4">No Analysis Available</h2>
+              <p className="text-gray-400 text-center max-w-md mb-6">
+                Add members to both teams and run the analysis to see matchup predictions.
+              </p>
+              <Button onClick={() => setActiveTab("teamBuilder")}>
+                <UsersIcon className="h-4 w-4 mr-2" />
+                Go to Team Builder
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default TeamBattleScout;

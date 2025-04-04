@@ -109,8 +109,9 @@ export default function Sidebar() {
           </div>
           <nav className="flex-1 space-y-2">
             {navigationItems.map((item) => {
+              // Check for exact match first, then check for startsWith only for non-specific paths
               const isActive = location === item.href || 
-                (item.href !== '/' && location.startsWith(item.href));
+                (item.href !== '/' && item.name !== 'Team Scouting' && item.name !== 'My Team' && location.startsWith(item.href));
               
               return (
                 <Link key={item.name} href={item.href} className={cn(
