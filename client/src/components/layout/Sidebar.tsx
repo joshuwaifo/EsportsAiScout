@@ -12,7 +12,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CheckIcon,
-  Trophy
+  Trophy,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGame } from "@/context/GameContext";
@@ -36,8 +37,9 @@ export default function Sidebar() {
     { name: 'Scouting', href: '/scouting', icon: SearchIcon },
     { name: 'Strategy', href: '/strategy', icon: BrainIcon },
     { name: 'My Team', href: '/team', icon: UsersIcon },
-    { name: 'Leaderboard', href: '/leaderboard', icon: LayoutDashboardIcon },
+    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'Coach Q&A', href: '/coach', icon: MessageSquareIcon },
+    { name: 'Guides', href: '/guides', icon: BookOpen },
     { name: 'About', href: '/about', icon: InfoIcon },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];

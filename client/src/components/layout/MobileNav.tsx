@@ -5,7 +5,9 @@ import {
   BrainIcon, 
   UsersIcon,
   InfoIcon,
-  MessageSquareIcon
+  MessageSquareIcon,
+  BookOpen,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,8 +19,9 @@ export default function MobileNav() {
     { name: 'Scouting', href: '/scouting', icon: SearchIcon },
     { name: 'Strategy', href: '/strategy', icon: BrainIcon },
     { name: 'Team', href: '/team', icon: UsersIcon },
-    { name: 'Leaderboard', href: '/leaderboard', icon: LayoutDashboardIcon },
+    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'Coach', href: '/coach', icon: MessageSquareIcon },
+    { name: 'Guides', href: '/guides', icon: BookOpen },
   ];
 
   return (
