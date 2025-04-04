@@ -16,9 +16,10 @@ export default function MobileNav() {
 
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
-    { name: 'Scouting', href: '/scouting', icon: SearchIcon },
+    { name: 'Prospects', href: '/scouting', icon: SearchIcon }, // Links to ProspectScouting
+    { name: 'Team Scout', href: '/team-scouting', icon: UsersIcon }, // Team Scouting
     { name: 'Strategy', href: '/strategy', icon: BrainIcon },
-    { name: 'Team', href: '/team', icon: UsersIcon },
+    { name: 'My Team', href: '/team', icon: UsersIcon },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'Coach', href: '/coach', icon: MessageSquareIcon },
     { name: 'Guides', href: '/guides', icon: BookOpen },

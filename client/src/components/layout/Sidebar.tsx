@@ -34,7 +34,8 @@ export default function Sidebar() {
 
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
-    { name: 'Scouting', href: '/scouting', icon: SearchIcon },
+    { name: 'Prospect Scouting', href: '/scouting', icon: SearchIcon },
+    { name: 'Team Scouting', href: '/team-scouting', icon: UsersIcon },
     { name: 'Strategy', href: '/strategy', icon: BrainIcon },
     { name: 'My Team', href: '/team', icon: UsersIcon },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },

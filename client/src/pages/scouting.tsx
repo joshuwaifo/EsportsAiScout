@@ -32,7 +32,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 
-export default function Scouting() {
+export default function ProspectScouting() {
   const { selectedGame } = useGame();
   const [searchQuery, setSearchQuery] = useState("");
   const [role, setRole] = useState("all");
@@ -275,8 +275,8 @@ export default function Scouting() {
         <main className="relative flex-1 overflow-y-auto focus:outline-none pb-16 lg:pb-0">
           <div className="py-6">
             <PageHeader 
-              title="Player Scouting"
-              subtitle={`${selectedGame} Prospects`}
+              title="Prospect Scouting"
+              subtitle={`${selectedGame} Player Prospects`}
               actions={
                 <>
                   <div className="mr-3 bg-surface/80 text-white text-sm px-3 py-1.5 rounded-md flex items-center">

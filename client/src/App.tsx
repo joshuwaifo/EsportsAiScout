@@ -4,13 +4,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
-import Scouting from "@/pages/scouting";
+import ProspectScouting from "@/pages/scouting";
 import Strategy from "@/pages/strategy";
 import Team from "@/pages/team";
 import About from "@/pages/about";
 import CoachQA from "@/pages/coach";
 import LeaderboardPage from "@/pages/leaderboard";
 import GuidesPage from "@/pages/guides";
+import TeamScoutingPage from "@/pages/team-scouting";
 import { CoachProvider } from "@/context/CoachContext";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { MatchProvider } from "@/context/MatchContext";
@@ -20,7 +21,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/scouting" component={Scouting} />
+      <Route path="/scouting" component={ProspectScouting} />
+      <Route path="/team-scouting" component={TeamScoutingPage} />
       <Route path="/strategy" component={Strategy} />
       <Route path="/team" component={Team} />
       <Route path="/coach" component={CoachQA} />

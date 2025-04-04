@@ -2,10 +2,9 @@ import React from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
 import { useGame } from '@/context/GameContext';
-import MoveInputGuide from '@/components/guides/MoveInputGuide';
-import { Gamepad2 } from 'lucide-react';
+import TeamBattleScout from '@/components/scouting/TeamBattleScout';
 
-export default function GuidesPage() {
+export default function TeamScoutingPage() {
   const { selectedGame } = useGame();
   
   return (
@@ -32,27 +31,23 @@ export default function GuidesPage() {
           <div className="py-6">
             <div className="px-4 mx-auto sm:px-6 md:px-8">
               <h1 className="text-2xl font-semibold text-white">
-                {selectedGame} Advanced Guides
+                Team Scouting: {selectedGame} Battle Analytics
               </h1>
               <p className="mt-1 text-sm text-gray-500">
-                Learn special move inputs and execution techniques
+                Analyze team compositions, matchups, and strategies for team battles
               </p>
             </div>
             
             <div className="px-4 mx-auto mt-8 sm:px-6 md:px-8">
               {selectedGame === 'Street Fighter' ? (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2 mb-6">
-                    <Gamepad2 className="h-5 w-5 text-primary" />
-                    <h2 className="text-xl font-semibold">Special Move Inputs</h2>
-                  </div>
-                  <MoveInputGuide />
+                <div className="w-full">
+                  <TeamBattleScout />
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-20">
-                  <h2 className="text-2xl font-bold mb-4">Guides Coming Soon</h2>
+                  <h2 className="text-2xl font-bold mb-4">Team Scouting Coming Soon</h2>
                   <p className="text-gray-400 text-center max-w-md">
-                    We're currently building specialized guides for {selectedGame}. 
+                    We're currently building team scouting features for {selectedGame}. 
                     Please check back later or try switching to Street Fighter.
                   </p>
                 </div>
