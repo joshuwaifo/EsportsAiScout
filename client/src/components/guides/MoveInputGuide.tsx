@@ -44,7 +44,7 @@ const specialMoves: SpecialMove[] = [
     character: "Ryu",
     name: "Hadoken",
     description: "A surge of spirit energy projected from the palms.",
-    videoUrl: "https://www.youtube.com/embed/xGi_gZJSAgc",
+    videoUrl: "https://www.youtube.com/embed/turn0search0", // Complete Ryu Hadouken Guide In Street Fighter 6
     inputs: [
       { direction: "↓", description: "Press Down", icon: "↓" },
       { direction: "↘", description: "Roll to Down-Forward", icon: "↘" },
@@ -73,7 +73,7 @@ const specialMoves: SpecialMove[] = [
     character: "Ryu",
     name: "Tatsumaki Senpukyaku",
     description: "A spinning kick attack that propels Ryu forward through the air.",
-    videoUrl: "https://www.youtube.com/embed/9H_ZEp8O4sc",
+    videoUrl: "https://www.youtube.com/embed/turn0search10", // How To: RYU - Specials, Normals, Cancels, and Combos!
     inputs: [
       { direction: "↓", description: "Press Down", icon: "↓" },
       { direction: "↙", description: "Roll to Down-Back", icon: "↙" },
@@ -102,7 +102,7 @@ const specialMoves: SpecialMove[] = [
     character: "Ryu",
     name: "Shoryuken",
     description: "A powerful rising dragon punch that launches opponents.",
-    videoUrl: "https://www.youtube.com/embed/T-rIqVYYR-g",
+    videoUrl: "https://www.youtube.com/embed/turn0search2", // MUST Use Input For IMMEDIATE Anti Air Shoryuken Improvement
     inputs: [
       { direction: "→", description: "Press Forward", icon: "→" },
       { direction: "↓", description: "Press Down", icon: "↓" },
@@ -131,7 +131,7 @@ const specialMoves: SpecialMove[] = [
     character: "Guile",
     name: "Sonic Boom",
     description: "A projectile created by slicing through the air with incredible speed.",
-    videoUrl: "https://www.youtube.com/embed/blx-TA3J-vE",
+    videoUrl: "https://www.youtube.com/embed/turn0search3", // Guile's Sonic Boom Loops For DUMMIES (Street Fighter 6 Guide)
     inputs: [
       { direction: "←", description: "Hold Back (charge)", icon: "←" },
       { direction: "→+P", description: "Press Forward + Punch", icon: "→👊" }
@@ -158,7 +158,7 @@ const specialMoves: SpecialMove[] = [
     character: "Zangief",
     name: "Spinning Pile Driver",
     description: "A devastating command grab that spins opponents into the ground.",
-    videoUrl: "https://www.youtube.com/embed/dQZiGa4rnJE",
+    videoUrl: "https://www.youtube.com/embed/turn0search4", // Zangief SPD Quick Guide Street Fighter 6 - Screw Piledriver Guide
     inputs: [
       { direction: "↓", description: "Start at Down", icon: "↓" },
       { direction: "↙", description: "Roll to Down-Back", icon: "↙" },
