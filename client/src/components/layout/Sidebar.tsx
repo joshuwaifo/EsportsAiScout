@@ -65,7 +65,7 @@ export default function Sidebar() {
         <div className="flex flex-col items-center justify-center h-20 px-4 pt-2 bg-surface">
           <span className="text-2xl font-bold text-white mb-1">AI<span className="text-[#39FF14]">League</span></span>
           <div className="text-xs font-semibold tracking-wider text-center text-[#39FF14] uppercase mb-2">
-            ESports 2026 Olympics
+            Asian Games 2026
           </div>
         </div>
         <div className="flex flex-col flex-grow px-4 py-4 overflow-y-auto bg-darkBg">
