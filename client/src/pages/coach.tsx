@@ -90,6 +90,58 @@ Team Weakest Attribute: ${coach.teamAttributes.sort((a, b) => a.value - b.value)
     const matchContext = upcomingMatches && upcomingMatches.length > 0 
       ? `Upcoming Match: vs ${upcomingMatches[0].teams.away} on ${new Date(upcomingMatches[0].date).toLocaleDateString()}`
       : "No upcoming matches scheduled";
+      
+    // Game-specific context based on the selected game
+    let gameSpecificContext = "";
+    
+    if (selectedGame === "Street Fighter") {
+      gameSpecificContext = `
+STREET FIGHTER SPECIFIC INFORMATION:
+- The platform includes character-specific movesets, frame data, and combo resources for Street Fighter 6
+- Players are evaluated on execution, adaptation, footsies, offense, and defense skills
+- Team Battle scouting analyzes 5v5 team compositions looking at character matchups
+- Training plans track combo completion rate, reaction time, punish rate, and adaptation rate
+- Character archetypes include All-Rounder, Rushdown, Zoner, Grappler, Mixed/Tricky, and Balanced styles
+- The community leaderboard evaluates players by rank tier, win rate, and special achievements
+- Tutorial resources for special moves are available for Ryu (Hadoken, Shoryuken, Tatsumaki), Guile (Sonic Boom, Flash Kick), and Zangief (Spinning Pile Driver)
+- Strategy builder accounts for character-specific matchups, playstyles, and counter-strategies
+`;
+    } else if (selectedGame === "League of Legends") {
+      gameSpecificContext = `
+LEAGUE OF LEGENDS SPECIFIC INFORMATION:
+- Team analysis emphasizes champion synergies, role distribution, and meta adaptation
+- Lane-specific statistics tracked include CS per minute, vision score, and objective control
+- Draft recommendations prioritize team composition balance and counter-picking
+- Macro-level strategy focuses on objective timing, vision control, and team rotations
+- Player evaluation metrics include KDA, vision score, objective damage, and teamfight participation
+`;
+    } else if (selectedGame === "PUBG Mobile") {
+      gameSpecificContext = `
+PUBG MOBILE SPECIFIC INFORMATION:
+- Strategy focuses on drop locations, rotation paths, and circle management
+- Player metrics include K/D ratio, average damage, survival time, and headshot percentage
+- Squad composition balances aggressive fraggers with support and scouting roles
+- Special attention to vehicle positioning, compound control, and late-game tactics
+- Map-specific strategies for different PUBG terrains and gameplay variations
+`;
+    } else if (selectedGame === "Tekken") {
+      gameSpecificContext = `
+TEKKEN SPECIFIC INFORMATION:
+- Character evaluations based on movement, punishment ability, combo execution, and matchup knowledge
+- Match analysis includes attack tendencies, defensive habits, and strategy adjustments
+- Training regimens focus on movement drills, punishment practice, and matchup learning
+- Special attention to Korean backdash consistency, throw breaking, and wall carry optimization
+`;
+    } else if (selectedGame === "King of Fighters") {
+      gameSpecificContext = `
+KING OF FIGHTERS SPECIFIC INFORMATION:
+- Team order strategy analysis for point, middle, and anchor positions
+- Character synergy evaluation for 3v3 format team construction
+- Meter management across multiple characters is a key strategic element
+- Offensive and defensive techniques including MAX mode usage and guard cancel options
+- Special attention to neutral control, hop pressure, and comeback mechanics
+`;
+    }
     
     // Combine all context
     return `
@@ -107,6 +159,8 @@ ${strategyContext}
 
 MATCH INFORMATION:
 ${matchContext}
+
+${gameSpecificContext}
 `;
   };
   

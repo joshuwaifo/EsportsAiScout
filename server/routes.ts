@@ -358,6 +358,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         CONTEXT INFORMATION:
         ${context || "No specific context provided."}
         
+        PLATFORM FEATURES AVAILABLE:
+        - Dashboard: Displays team performance metrics, recent matches, and AI insights
+        - Prospect Scouting: Tool for evaluating potential team additions with compatibility scoring
+        - Team Battle Scouting: Analyze 5v5 team compositions and matchups with character-specific data
+        - Strategy Builder: Create and adapt game-specific strategies based on team strengths
+        - Training Plans: Track key performance indicators and provide targeted improvement drills
+        - Community Leaderboard: View top players, their achievements, and performance statistics
+        - Guides: Access tutorial content for game mechanics, including special move inputs
+        
+        When answering user questions, reference these platform features when relevant to provide comprehensive support.
+        
         Use this context to provide detailed, personalized responses about players, team strategy, game tactics, and performance metrics.
         Always consider the context information when answering questions.
         Be helpful, detailed, and focused on esports coaching and strategy.

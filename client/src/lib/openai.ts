@@ -183,7 +183,14 @@ function getGameSpecificPrompt(gameTitle: string): string {
 - Adapting to opponents mid-match
 - Resource management (Drive Gauge, Super Meter)
 - Spacing and footsies
-- Risk/reward assessment for special moves`;
+- Risk/reward assessment for special moves
+
+Platform features for Street Fighter include:
+- Team Battle Scouting tools that analyze character matchups and player skills (offense, defense, adaptation, execution, footsies)
+- Character archetype analysis (All-Rounder, Rushdown, Zoner, Grappler, Mixed/Tricky, Balanced)
+- Training plans that track combo completion rate, reaction time, punish rate, and adaptation rate
+- Special move tutorials with input guides for characters like Ryu, Guile, and Zangief
+- Community leaderboard with rank tiers, win rates, and achievement badges`;
       
     case "League of Legends":
       return `For League of Legends, focus on:
@@ -194,7 +201,14 @@ function getGameSpecificPrompt(gameTitle: string): string {
 - Build paths and item adaptations
 - Team fighting positioning and execution
 - Macro decision making and rotation timing
-- Champion pool expansion based on meta`;
+- Champion pool expansion based on meta
+
+Platform features for League of Legends include:
+- Team composition analysis tools with role synergy metrics
+- Draft recommendation system based on meta and counter-picks
+- Vision control and objective statistics tracking
+- Lane-specific performance metrics and recommendations
+- Team coordination assessment and improvements`;
       
     case "PUBG Mobile":
       return `For PUBG Mobile, focus on:
@@ -205,7 +219,14 @@ function getGameSpecificPrompt(gameTitle: string): string {
 - Engagement decision-making (when to fight vs. avoid)
 - Final circle tactics and positioning
 - Weapon selection and attachments
-- Map-specific strategies`;
+- Map-specific strategies
+
+Platform features for PUBG Mobile include:
+- Heat maps for optimal drop locations and loot paths
+- Rotation analytics for circle positioning
+- Team role distribution analysis (fragger, support, scout, IGL)
+- Weapon performance metrics and loadout optimization
+- Survival time and damage statistics tracking`;
       
     case "Tekken":
       return `For Tekken, focus on:
@@ -216,7 +237,14 @@ function getGameSpecificPrompt(gameTitle: string): string {
 - Okizeme and wake-up options
 - Wall carry and wall combo opportunities
 - Match-up knowledge and counter strategies
-- Defensive options and breaking throws`;
+- Defensive options and breaking throws
+
+Platform features for Tekken include:
+- Character matchup analysis with frame data integration
+- Movement drill training plans and tracking
+- Punishment strategy recommendations
+- Combo optimization tools with execution metrics
+- Wall carry and positioning tactical analysis`;
       
     case "King of Fighters":
       return `For King of Fighters, focus on:
@@ -227,7 +255,14 @@ function getGameSpecificPrompt(gameTitle: string): string {
 - Meter management across multiple characters
 - Short hop and hyper hop pressure techniques
 - Hit confirmation into optimal combos
-- Match-up specific adaptations`;
+- Match-up specific adaptations
+
+Platform features for King of Fighters include:
+- Team order optimization tools (point, mid, anchor analysis)
+- Character synergy metrics for team building
+- Meter management strategy recommendations
+- MAX mode usage efficiency tracking
+- Position-specific training plans for point, mid, and anchor roles`;
       
     default:
       return "Focus on general esports principles like strategic adaptability, mechanical skill development, and mental fortitude under pressure.";
