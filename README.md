@@ -2,7 +2,8 @@
 # AI League - Esports Analytics Platform
 
 ## Overview
-AI League is a comprehensive esports analytics platform designed for the 2026 Asian Games, with a primary focus on fighting games like Street Fighter 6. The platform provides advanced scouting, strategy analysis, and performance tracking capabilities powered by AI.
+AI League is a comprehensive esports analytics platform designed for the 2026 Asian Games, with a primary focus on fighting games like Street Fighter 6. The platform provides advanced scouting, strategy analysis, and performance tracking capabilities powered by AI. The current deployed version of this can be found at: https://esports-ai-scout-ojuwaifo.replit.app
+
 
 ## Key Features
 
